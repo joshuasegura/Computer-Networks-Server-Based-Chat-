@@ -1,24 +1,30 @@
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.crypto.Data;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.io.IOException;
+
 
 public class UDPClient {
 
     private static DatagramSocket d;
     private static DatagramPacket DPreceived, DPsending;
     private static byte[] received;
+    private static String clientID = "jas151530";
+    private static String password = "password1";
+
 
     public static void main(String[] args) throws Exception{
-	/**** This is the UDP client code ****/
+        /**** This is the UDP client code ****/
 
-	    Scanner input = new Scanner(System.in);
+        Scanner input = new Scanner(System.in);
 
-	    // create the datagram socket
+        // create the datagram socket
         DatagramSocket d = new DatagramSocket();
         InetAddress ip = InetAddress.getLocalHost();
         String in, out;
@@ -30,11 +36,11 @@ public class UDPClient {
         while(true){
             if(!out.equals("bye")){
                 if (out.equals("Log on")) {
-                    out = "HELLO(jas151530)";
+                    out = "HELLO(" + clientID + ")";
                 }
 
                 // sends the packet to the server
-                DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12000);
+                DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12001);
                 d.send(DPsending);
 
                 // buffer for data sent by the server
@@ -44,12 +50,10 @@ public class UDPClient {
                 in = new String(DPreceived.getData()).trim();
                 if(in.contains("CHALLENGE(")){
                     int end = in.length();
-                    System.out.println("Enter Password: ");
-                    String password = input.nextLine();
                     String rand = in.substring(10,end-1);
                     String res = A3(rand, password);
                     out = "RESPONSE(" + res + ")";
-                    DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12000);
+                    DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12001);
                     d.send(DPsending);
                 }
                 if(in.contains("AUTH_FAIL")){
@@ -90,4 +94,21 @@ public class UDPClient {
 
         return done;
     }
+
+    // This is the method that uses a hash function to generate the encryption key
+    private static SecretKeySpec A8(int rand, String password) throws NoSuchAlgorithmException{
+        String hash = Integer.toString(rand) + password;
+
+        // using SHA-1 for this hash
+        MessageDigest m = MessageDigest.getInstance("SHA-1");
+        m.update(hash.getBytes(StandardCharsets.UTF_8));
+        byte[] hashed = m.digest();
+        hashed = Arrays.copyOf(hashed,16);
+
+        // Store in encryption key and return the value of it
+        SecretKeySpec key = new SecretKeySpec(hashed, "AES");
+        return key;
+    }
+
 }
+
