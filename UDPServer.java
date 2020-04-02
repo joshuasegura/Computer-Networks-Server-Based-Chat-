@@ -1,9 +1,13 @@
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Random;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -13,6 +17,7 @@ public class UDPServer {
     private static DatagramSocket d;
     private static DatagramPacket DPreceived,DPsending;
     private static byte[] received;
+    private static Cipher AEScipher;
     private static SecretKeySpec CK_A;
     public static ArrayList<String> real_users = new ArrayList<String>(){
         {
@@ -36,25 +41,28 @@ public class UDPServer {
         /**** This is the server for the chat system  ****/
 
         // new datagram socket at port 12000
-        d = new DatagramSocket(12001);
+        d = new DatagramSocket(12002);
+        Random random = new Random();
+        int rand = 0, index = 0;
         String in,out = null;
         InetAddress client_Address = null;
         int client_port;
+        boolean skip = false;
 
         while(true){
-            received = new byte[65535];
+            received = new byte[65536];
             DPreceived = new DatagramPacket(received, received.length);
             d.receive(DPreceived);
             client_Address = DPreceived.getAddress();
             client_port = DPreceived.getPort();
             in = new String(DPreceived.getData()).trim();
+
             if(in.contains("HELLO(")){
                 int end = in.length();
                 String validate_user = in.substring(6,end-1);
                 if(real_users.contains(validate_user)){
-                    int index = real_users.indexOf(validate_user);
-                    Random random = new Random();
-                    int rand = random.nextInt(); // generates the random number
+                    index = real_users.indexOf(validate_user);
+                    rand = random.nextInt(); // generates the random number
                     Xres = A3(rand, passwords.get(index));
                     out = "CHALLENGE(" + rand + ")";
                 }
@@ -64,7 +72,15 @@ public class UDPServer {
             else if(in.contains("RESPONSE(")){
                 String res = in.substring(9,in.length()-1);
                 if(res.equals(Xres) ){
-                    out = "AUTH_SUCCESS(rand_cookie, port_number)";
+                    CK_A = A8(rand,passwords.get(index));
+                    int rand_cookie = random.nextInt();
+                    // still need to assign the port
+                    byte[] encrypted = encrypt(CK_A, "AUTH_SUCCESS(rand_cookie)");
+                    received = new byte[encrypted.length];
+                    received = encrypted;
+                    String test = decrypt(CK_A, received);
+                    skip = true;
+                    //decrypt(CK_A,received);
                 }
                 else
                     out = "AUTH_FAIL";
@@ -73,17 +89,47 @@ public class UDPServer {
             if(in.contains("bye"))
                 break;
 
-            System.out.println(out);
-            DPsending = new DatagramPacket(out.getBytes(),out.length(),client_Address,client_port);
-            d.send(DPsending);
+            if(skip == false){
+                //System.out.println(out);
+                DPsending = new DatagramPacket(out.getBytes(),out.length(),client_Address,client_port);
+                d.send(DPsending);
+            }
+            else{
+                skip = false;
+                DPsending = new DatagramPacket(received,received.length,client_Address,client_port);
+                System.out.println(DPsending.getData());
+                d.send(DPsending);
+            }
+
         }
         System.out.println("out of server loop");
+    }
+
+    // function for encryption of messages
+    private static byte[] encrypt(SecretKeySpec myKey, String message) throws Exception {
+        AEScipher = Cipher.getInstance("AES");
+        AEScipher.init(Cipher.ENCRYPT_MODE, myKey);
+        byte[] toEncrypt = message.getBytes("UTF-8");
+        byte[] encrypted = Base64.getEncoder().encode(AEScipher.doFinal(toEncrypt));
+
+        String encryptedString = new String(encrypted,StandardCharsets.US_ASCII);
+        return encrypted;
+    }
+
+    // function for decrypting received messages
+    private static String decrypt(SecretKeySpec myKey, byte[] message) throws Exception{
+        message = Base64.getDecoder().decode(message);
+        AEScipher = Cipher.getInstance("AES");
+        AEScipher.init(Cipher.DECRYPT_MODE,myKey);
+        byte[] decrypted = AEScipher.doFinal(message);
+
+        String decryptedString = new String(decrypted,StandardCharsets.US_ASCII);
+        return decryptedString;
     }
 
     // This is the authentication algorithm for the UDP user verification
     private static String A3(int rand, String password) throws NoSuchAlgorithmException {
         String hash = Integer.toString(rand) + password;
-        System.out.println("Hashing: " + hash);
         // using SHA-256 for this hash
         MessageDigest m = MessageDigest.getInstance("SHA-256");
         m.update(hash.getBytes(StandardCharsets.UTF_8));
