@@ -1,6 +1,8 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.crypto.Data;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +34,7 @@ public class UDPClient {
         DatagramSocket d = new DatagramSocket();
         InetAddress ip = InetAddress.getLocalHost();
         String in, out, rand = "";
+        String rand_cookie = "", TCP_port = "";
         boolean nextIsAUTH = false;
 
         System.out.println("This is just to get the UDP authentication working just type 'Log on' \n\tand" +
@@ -77,20 +80,49 @@ public class UDPClient {
                     CK_A = A8(rand, password);
 
                     String w = decrypt(CK_A, in.trim().getBytes("UTF-8"));
-                    System.out.println(w);
-                    System.out.println("Password correct");
-                    System.out.println("\tStill need to create the cookie and port number part here\n" +
-                            "\tas well as create the encrypted channel for communication -JS");
+                    int end, comma_location;
+                    comma_location = w.indexOf(",");
+                    end = w.length();
+                    rand_cookie = w.substring(13,comma_location);
+                    TCP_port = w.substring(comma_location+1, end-1);
+
                     break;
                 }
 
-                System.out.println("Server: " + in);
             }
             else
                 break;
         }
         d.close();
-        System.out.println("out of client loop");
+        startTCPconn(ip,rand_cookie,TCP_port);
+    }
+
+    private static void startTCPconn(InetAddress ip,String rand_cookie, String TCP_port) throws Exception {
+        Socket s = new Socket(ip,Integer.parseInt(TCP_port));
+        DataInputStream inbound = new DataInputStream(s.getInputStream());
+        DataOutputStream outbound = new DataOutputStream(s.getOutputStream());
+        String received, sending;
+        Scanner in = new Scanner(System.in);
+
+        // send the initial connect message
+        String connect = "CONNECT(" + rand_cookie + ")";
+        sending = new String(encrypt(CK_A,connect),StandardCharsets.US_ASCII);
+        outbound.writeUTF(sending);
+
+        received = decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+        if(received.equals("CONNECTED"))
+            System.out.println("You are connected");
+        // all outbound messages must be encrypted and all inbound must be decrypted
+        while(true){
+            String input = in.nextLine();
+            if(input.equals("Log out")) {
+                sending = new String(encrypt(CK_A,input),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
+                break;
+            }
+        }
+
+        s.close();
     }
 
     // function for encryption of messages

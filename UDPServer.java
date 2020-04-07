@@ -1,6 +1,9 @@
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +21,7 @@ public class UDPServer {
     private static DatagramPacket DPreceived,DPsending;
     private static byte[] received;
     private static Cipher AEScipher;
-    private static SecretKeySpec CK_A;
+    public static SecretKeySpec CK_A;
     public static ArrayList<String> real_users = new ArrayList<String>(){
         {
             add("jas151530");
@@ -74,13 +77,14 @@ public class UDPServer {
                 if(res.equals(Xres) ){
                     CK_A = A8(rand,passwords.get(index));
                     int rand_cookie = random.nextInt();
-                    // still need to assign the port
-                    byte[] encrypted = encrypt(CK_A, "AUTH_SUCCESS(rand_cookie)");
+                    int TCPport = random.nextInt((65535+1) - 1023) + 1023;
+                    byte[] encrypted = encrypt(CK_A, "AUTH_SUCCESS(" + rand_cookie +"," + TCPport + ")");
                     received = new byte[encrypted.length];
                     received = encrypted;
-                    String test = decrypt(CK_A, received);
                     skip = true;
-                    //decrypt(CK_A,received);
+                    //// create the TCP connection thread here /////
+                    Thread thr = new TCPhandler(rand_cookie,TCPport);
+                    thr.start();
                 }
                 else
                     out = "AUTH_FAIL";
@@ -90,7 +94,6 @@ public class UDPServer {
                 break;
 
             if(skip == false){
-                //System.out.println(out);
                 DPsending = new DatagramPacket(out.getBytes(),out.length(),client_Address,client_port);
                 d.send(DPsending);
             }
@@ -106,7 +109,7 @@ public class UDPServer {
     }
 
     // function for encryption of messages
-    private static byte[] encrypt(SecretKeySpec myKey, String message) throws Exception {
+    public static byte[] encrypt(SecretKeySpec myKey, String message) throws Exception {
         AEScipher = Cipher.getInstance("AES");
         AEScipher.init(Cipher.ENCRYPT_MODE, myKey);
         byte[] toEncrypt = message.getBytes("UTF-8");
@@ -117,7 +120,7 @@ public class UDPServer {
     }
 
     // function for decrypting received messages
-    private static String decrypt(SecretKeySpec myKey, byte[] message) throws Exception{
+    public static String decrypt(SecretKeySpec myKey, byte[] message) throws Exception{
         message = Base64.getDecoder().decode(message);
         AEScipher = Cipher.getInstance("AES");
         AEScipher.init(Cipher.DECRYPT_MODE,myKey);
@@ -162,4 +165,48 @@ public class UDPServer {
         SecretKeySpec key = new SecretKeySpec(hashed, "AES");
         return key;
     }
+}
+
+class TCPhandler extends Thread{
+    private int rand_cookie,port;
+
+    public TCPhandler(int rand_cookie, int port){
+        this.rand_cookie = rand_cookie;
+        this.port = port;
+    }
+
+    public void run(){
+        try {
+            ServerSocket TCPconn = new ServerSocket(port);
+            Socket in = null;
+            in = TCPconn.accept();
+            DataInputStream inbound = new DataInputStream(in.getInputStream());
+            DataOutputStream outbound = new DataOutputStream(in.getOutputStream());
+
+            String received;
+            String sending;
+
+            while(true){
+                received = UDPServer.decrypt(UDPServer.CK_A,inbound.readUTF().getBytes("UTF-8"));
+                System.out.println(received);
+                if(received.equals("CONNECT(" + rand_cookie + ")")) {
+                    sending = "CONNECTED";
+                    sending = new String(UDPServer.encrypt(UDPServer.CK_A, sending), StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                }
+
+                if(received.equals("Log out")) {
+                    in.close();
+                    TCPconn.close();
+                    break;
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
