@@ -6,6 +6,9 @@ public static void main(String[] args) {
     } catch (IOException e) {
         System.err.println("Could not listen on port: " + portNumber);
         System.exit(1);
+    } catch (InterruptedException e) {
+        System.err.pruntln("Fatal COnnection error!");
+        e.printStackTrace();
     }
 
 
