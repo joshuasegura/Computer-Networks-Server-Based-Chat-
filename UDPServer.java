@@ -4,6 +4,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -17,11 +18,13 @@ import java.util.ArrayList;
 
 public class UDPServer {
 
+
     private static DatagramSocket d;
     private static DatagramPacket DPreceived,DPsending;
     private static byte[] received;
     private static Cipher AEScipher;
-    public static SecretKeySpec CK_A;
+    private static SecretKeySpec CK_A;
+    private static String validate_user;
     public static ArrayList<String> real_users = new ArrayList<String>(){
         {
             add("jas151530");
@@ -45,11 +48,12 @@ public class UDPServer {
 
         // new datagram socket at port 12000
         d = new DatagramSocket(12002);
+        new TCPhandler();
         Random random = new Random();
         int rand = 0, index = 0;
         String in,out = null;
-        InetAddress client_Address = null;
         int client_port;
+        InetAddress client_Address;
         boolean skip = false;
 
         while(true){
@@ -62,7 +66,7 @@ public class UDPServer {
 
             if(in.contains("HELLO(")){
                 int end = in.length();
-                String validate_user = in.substring(6,end-1);
+                validate_user = in.substring(6,end-1);
                 if(real_users.contains(validate_user)){
                     index = real_users.indexOf(validate_user);
                     rand = random.nextInt(); // generates the random number
@@ -76,15 +80,17 @@ public class UDPServer {
                 String res = in.substring(9,in.length()-1);
                 if(res.equals(Xres) ){
                     CK_A = A8(rand,passwords.get(index));
+                    client_Address = DPreceived.getAddress();
                     int rand_cookie = random.nextInt();
                     int TCPport = random.nextInt((65535+1) - 1023) + 1023;
                     byte[] encrypted = encrypt(CK_A, "AUTH_SUCCESS(" + rand_cookie +"," + TCPport + ")");
                     received = new byte[encrypted.length];
                     received = encrypted;
                     skip = true;
+                    createTCPconnection(rand_cookie,TCPport,CK_A,client_Address,validate_user);
                     //// create the TCP connection thread here /////
-                    Thread thr = new TCPhandler(rand_cookie,TCPport);
-                    thr.start();
+                    //Thread thr = new TCPhandler(rand_cookie,TCPport);
+                    //thr.start();
                 }
                 else
                     out = "AUTH_FAIL";
@@ -165,14 +171,44 @@ public class UDPServer {
         SecretKeySpec key = new SecretKeySpec(hashed, "AES");
         return key;
     }
+
+    // This method creates the TCP connection
+    private static void createTCPconnection(int rand_cookie,int TCPport,SecretKeySpec CK_A,
+                                    InetAddress ip, String validate_user){
+
+        Thread thr = new TCPhandler(rand_cookie,TCPport,CK_A,ip,validate_user);
+        thr.start();
+    }
 }
 
 class TCPhandler extends Thread{
+    public static ArrayList<Integer> clientPort;
+    public static ArrayList<String> connectedClients;
+    public static ArrayList<InetAddress> connectedClientsIP;
+    private static ArrayList<Boolean> clientInChat;
+    private static ArrayList<SecretKeySpec> clientKeys;
     private int rand_cookie,port;
+    private SecretKeySpec CK_A;
+    private InetAddress userIP;
+    private String userID;
 
-    public TCPhandler(int rand_cookie, int port){
+    public TCPhandler(){
+        this.clientPort = new ArrayList<Integer>();
+        this.connectedClients = new ArrayList<String>();
+        this.connectedClientsIP = new ArrayList<InetAddress>();
+        this.clientInChat = new ArrayList<Boolean>();
+        this.clientKeys = new ArrayList<SecretKeySpec>();
+    }
+
+    public TCPhandler(int rand_cookie, int port, SecretKeySpec CK_A, InetAddress ip, String userID){
         this.rand_cookie = rand_cookie;
         this.port = port;
+        this.CK_A = CK_A;
+        clientKeys.add(CK_A);
+        clientPort.add(port);
+        connectedClientsIP.add(ip);
+        connectedClients.add(userID);
+        clientInChat.add(false);
     }
 
     public void run(){
@@ -187,11 +223,11 @@ class TCPhandler extends Thread{
             String sending;
 
             while(true){
-                received = UDPServer.decrypt(UDPServer.CK_A,inbound.readUTF().getBytes("UTF-8"));
+                received = UDPServer.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
                 System.out.println(received);
                 if(received.equals("CONNECT(" + rand_cookie + ")")) {
                     sending = "CONNECTED";
-                    sending = new String(UDPServer.encrypt(UDPServer.CK_A, sending), StandardCharsets.US_ASCII);
+                    sending = new String(UDPServer.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
                 }
 
@@ -199,6 +235,27 @@ class TCPhandler extends Thread{
                     in.close();
                     TCPconn.close();
                     break;
+                }
+
+                if(received.contains("CHAT_REQUEST(")){
+                    String checkIfConnected = received.substring(23,received.length()-1);
+                    System.out.println(checkIfConnected);
+                    int index;
+                    if(connectedClients.contains(checkIfConnected)){
+                        index = connectedClients.indexOf(checkIfConnected);
+                        if(clientInChat.get(index) == false)
+                            System.out.println("now to start the chat phase"); // how to start the chat???
+                        else{
+                            sending = "UNREACHABLE(" + checkIfConnected + ")";
+                            sending = new String(UDPServer.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
+                            outbound.writeUTF(sending);
+                        }
+                    }
+                    else{
+                        sending = new String(UDPServer.encrypt(CK_A,"Requested user is not logged on"),
+                                StandardCharsets.US_ASCII);
+                        outbound.writeUTF(sending);
+                    }
                 }
             }
 

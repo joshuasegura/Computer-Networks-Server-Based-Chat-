@@ -109,9 +109,11 @@ public class UDPClient {
         sending = new String(encrypt(CK_A,connect),StandardCharsets.US_ASCII);
         outbound.writeUTF(sending);
 
+        // receiving initial message indicating that user is connected
         received = decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
         if(received.equals("CONNECTED"))
             System.out.println("You are connected");
+
         // all outbound messages must be encrypted and all inbound must be decrypted
         while(true){
             String input = in.nextLine();
@@ -119,6 +121,17 @@ public class UDPClient {
                 sending = new String(encrypt(CK_A,input),StandardCharsets.US_ASCII);
                 outbound.writeUTF(sending);
                 break;
+            }
+
+            if(input.contains("Chat Client-ID-")){
+                String toSend = "CHAT_REQUEST(" + input.substring(5) + ")";
+                sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
+            }
+
+            received = decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+            if(received.contains("UNREACHABLE(")){
+                System.out.println("Correspondent Unreachable");
             }
         }
 
