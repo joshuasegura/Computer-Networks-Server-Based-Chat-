@@ -16,7 +16,7 @@ import java.util.Random;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-public class UDPServer {
+public class Server {
 
 
     private static DatagramSocket d;
@@ -226,16 +226,16 @@ class TCPhandler extends Thread{
             String sending;
 
             while(true){
-                received = UDPServer.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+                received = Server.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
                 System.out.println(received);
                 if(received.equals("CONNECT(" + rand_cookie + ")")) {
                     sending = "CONNECTED";
-                    sending = new String(UDPServer.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
+                    sending = new String(Server.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
                 }
 
                 if(received.equals("Log off")) {
-                    sending = new String(UDPServer.encrypt(CK_A,"EXIT()"),StandardCharsets.US_ASCII);
+                    sending = new String(Server.encrypt(CK_A,"EXIT()"),StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
                     in.close();
                     outbound.close();
@@ -264,7 +264,7 @@ class TCPhandler extends Thread{
                         }
 
                     DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
-                    sending = new String(UDPServer.encrypt(clientKeys.get(index),message),StandardCharsets.US_ASCII);
+                    sending = new String(Server.encrypt(clientKeys.get(index),message),StandardCharsets.US_ASCII);
                     temp.writeUTF(sending);
                 }
 
@@ -280,7 +280,7 @@ class TCPhandler extends Thread{
                     index = clientSession.indexOf(session);
                     DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
                     sending = "END_NOTIF(" + clientSession.get(index) + ")";
-                    sending = new String(UDPServer.encrypt(clientKeys.get(index),sending),StandardCharsets.US_ASCII);
+                    sending = new String(Server.encrypt(clientKeys.get(index),sending),StandardCharsets.US_ASCII);
                     temp.writeUTF(sending);
                     clientInChat.set(index,false);
                     clientSession.set(index,-1);
@@ -303,11 +303,11 @@ class TCPhandler extends Thread{
             index = connectedClients.indexOf(checkIfConnected);
             if(clientInChat.get(index) == false) {
                 sending = "CHAT_STARTED("+ ++sessionID + "," + checkIfConnected + ")";
-                sending = new String(UDPServer.encrypt(CK_A,sending),StandardCharsets.US_ASCII);
+                sending = new String(Server.encrypt(CK_A,sending),StandardCharsets.US_ASCII);
                 outbound.writeUTF(sending);
                 DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
                 sending = "CHAT_STARTED(" + sessionID + "," + this.userID + ")";
-                sending = new String(UDPServer.encrypt(clientKeys.get(index),sending),StandardCharsets.US_ASCII);
+                sending = new String(Server.encrypt(clientKeys.get(index),sending),StandardCharsets.US_ASCII);
                 temp.writeUTF(sending);
 
                 // sets the chatting sessionID and boolean for inChat
@@ -318,13 +318,13 @@ class TCPhandler extends Thread{
             }
             else{
                 sending = "UNREACHABLE(" + checkIfConnected + ")";
-                sending = new String(UDPServer.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
+                sending = new String(Server.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
                 outbound.writeUTF(sending);
             }
         }
         else{
             sending = sending = "UNREACHABLE(" + checkIfConnected + ")";
-            sending = new String(UDPServer.encrypt(CK_A,sending),
+            sending = new String(Server.encrypt(CK_A,sending),
                     StandardCharsets.US_ASCII);
             outbound.writeUTF(sending);
         }
