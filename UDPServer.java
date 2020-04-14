@@ -246,6 +246,7 @@ class TCPhandler extends Thread{
                     connectedClients.remove(index);
                     clientInChat.remove(index);
                     clientSession.remove(index);
+                    clientSockets.remove(index);
                     break;
                 }
 
