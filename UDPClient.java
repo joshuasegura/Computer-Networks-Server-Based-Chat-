@@ -22,10 +22,11 @@ public class UDPClient{
     private static Cipher AEScipher;
     private static byte[] received;
     public static boolean chatting = false;
-    private static String clientID = "jas151530";
-    private static String password = "password1";
-    //private static String clientID = "msn160030";
-    //private static String password = "password4";
+    public static String sessionID;
+    //private static String clientID = "jas151530";
+    //private static String password = "password1";
+    private static String clientID = "msn160030";
+    private static String password = "password4";
 
 
     public static void main(String[] args) throws Exception{
@@ -119,14 +120,13 @@ public class UDPClient{
             System.out.println("You are connected");
 
         ////// put the listener class info here
-        Thread t = new ServerListener(s,CK_A,inbound,false);
+        Thread t = new ServerListener(s,CK_A,inbound);
         t.start();
 
-        //boolean chatting = false;
         // all outbound messages must be encrypted and all inbound must be decrypted
         while(true){
             String input = in.nextLine();
-            if(input.equals("Log out")) {
+            if(input.equals("Log off")) {
                 sending = new String(encrypt(CK_A,input),StandardCharsets.US_ASCII);
                 outbound.writeUTF(sending);
                 break;
@@ -140,26 +140,22 @@ public class UDPClient{
 
             /////// sending the chat message ///////
             if(chatting){
-                String toSend = "CHAT(" + input + ")";
-                sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
-                outbound.writeUTF(sending);
+                if(input.equals("End chat")) {
+                    String toSend = "END_REQUEST(" + sessionID + ")";
+                    sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                    chatting = false;
+                    System.out.println("Chat ended");
+                }
+                else {
+                    String toSend = "CHAT("+ sessionID + "," + input + ")";
+                    sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                }
             }
 
-            /*
-            received = decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
-            if(received.contains("UNREACHABLE(")){
-                System.out.println("Correspondent Unreachable");
-            }
-
-            if(received.contains("chatting with")) {
-                System.out.println(received);
-                chatting = true;
-            }
-
-            if(chatting == true)
-                System.out.println(received);    */
         }
-
+        t.join();
         s.close();
     }
 
@@ -223,15 +219,13 @@ public class UDPClient{
 
 class ServerListener extends Thread{
     Socket s;
-    boolean chatting;
     DataInputStream inbound;
     SecretKeySpec CK_A;
 
-    ServerListener(Socket s, SecretKeySpec CK_A, DataInputStream inbound, boolean chatting){
+    ServerListener(Socket s, SecretKeySpec CK_A, DataInputStream inbound){
         this.s = s;
         this.CK_A = CK_A;
         this.inbound = inbound;
-        this.chatting = chatting;
     }
 
     public void run(){
@@ -248,15 +242,35 @@ class ServerListener extends Thread{
                 System.out.println("Correspondent Unreachable");
             }
 
-            if(received.contains("chatting with")) {
-                System.out.println(received);
-                chatting = true;
+            if(received.contains("CHAT_STARTED(")) {
+                System.out.print("You are now chatting with ");
+                System.out.println(received.substring(received.indexOf(",")+1,received.length()-1));
                 UDPClient.chatting = true;
+                UDPClient.sessionID = received.substring(13,received.indexOf(","));
+                System.out.println("SessionID: " + UDPClient.sessionID);
+                System.out.println(received);
+                continue;
             }
 
-            if(chatting == true)
+            if(received.contains("END_NOTIF(")){
+                UDPClient.chatting = false;
+                System.out.println("Chat ended");
+            }
+
+            if(UDPClient.chatting == true)
                 System.out.println(received);
 
+            if(received.equals("EXIT()")){
+                break;
+            }
+
+        }
+
+        // close the input stream before returning
+        try {
+            inbound.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
