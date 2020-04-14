@@ -14,7 +14,7 @@ import java.util.Scanner;
 import java.io.IOException;
 
 
-public class UDPClient{
+public class Client{
 
     private static DatagramSocket d;
     private static DatagramPacket DPreceived, DPsending;
@@ -233,7 +233,7 @@ class ServerListener extends Thread{
         System.out.println("In client thread");
         while(true){
             try {
-                received = UDPClient.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+                received = Client.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -245,19 +245,19 @@ class ServerListener extends Thread{
             if(received.contains("CHAT_STARTED(")) {
                 System.out.print("You are now chatting with ");
                 System.out.println(received.substring(received.indexOf(",")+1,received.length()-1));
-                UDPClient.chatting = true;
-                UDPClient.sessionID = received.substring(13,received.indexOf(","));
-                System.out.println("SessionID: " + UDPClient.sessionID);
+                Client.chatting = true;
+                Client.sessionID = received.substring(13,received.indexOf(","));
+                System.out.println("SessionID: " + Client.sessionID);
                 System.out.println(received);
                 continue;
             }
 
             if(received.contains("END_NOTIF(")){
-                UDPClient.chatting = false;
+                Client.chatting = false;
                 System.out.println("Chat ended");
             }
 
-            if(UDPClient.chatting == true)
+            if(Client.chatting == true)
                 System.out.println(received);
 
             if(received.equals("EXIT()")){
