@@ -14,15 +14,18 @@ import java.util.Scanner;
 import java.io.IOException;
 
 
-public class UDPClient {
+public class UDPClient{
 
     private static DatagramSocket d;
     private static DatagramPacket DPreceived, DPsending;
     private static SecretKeySpec CK_A;
     private static Cipher AEScipher;
     private static byte[] received;
+    public static boolean chatting = false;
     private static String clientID = "jas151530";
     private static String password = "password1";
+    //private static String clientID = "msn160030";
+    //private static String password = "password4";
 
 
     public static void main(String[] args) throws Exception{
@@ -69,6 +72,7 @@ public class UDPClient {
                     nextIsAUTH = true;
                     DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12002);
                     d.send(DPsending);
+                    out = "";
                     continue;
                 }
                 if(in.contains("AUTH_FAIL")){
@@ -97,7 +101,7 @@ public class UDPClient {
         startTCPconn(ip,rand_cookie,TCP_port);
     }
 
-    private static void startTCPconn(InetAddress ip,String rand_cookie, String TCP_port) throws Exception {
+    private static void startTCPconn (InetAddress ip,String rand_cookie, String TCP_port) throws Exception {
         Socket s = new Socket(ip,Integer.parseInt(TCP_port));
         DataInputStream inbound = new DataInputStream(s.getInputStream());
         DataOutputStream outbound = new DataOutputStream(s.getOutputStream());
@@ -114,6 +118,11 @@ public class UDPClient {
         if(received.equals("CONNECTED"))
             System.out.println("You are connected");
 
+        ////// put the listener class info here
+        Thread t = new ServerListener(s,CK_A,inbound,false);
+        t.start();
+
+        //boolean chatting = false;
         // all outbound messages must be encrypted and all inbound must be decrypted
         while(true){
             String input = in.nextLine();
@@ -129,17 +138,33 @@ public class UDPClient {
                 outbound.writeUTF(sending);
             }
 
+            /////// sending the chat message ///////
+            if(chatting){
+                String toSend = "CHAT(" + input + ")";
+                sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
+            }
+
+            /*
             received = decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
             if(received.contains("UNREACHABLE(")){
                 System.out.println("Correspondent Unreachable");
             }
+
+            if(received.contains("chatting with")) {
+                System.out.println(received);
+                chatting = true;
+            }
+
+            if(chatting == true)
+                System.out.println(received);    */
         }
 
         s.close();
     }
 
     // function for encryption of messages
-    private static byte[] encrypt(SecretKeySpec myKey, String message) throws Exception {
+    public static byte[] encrypt(SecretKeySpec myKey, String message) throws Exception {
         AEScipher = Cipher.getInstance("AES");
         AEScipher.init(Cipher.ENCRYPT_MODE, myKey);
         byte[] toEncrypt = message.getBytes("UTF-8");
@@ -150,7 +175,7 @@ public class UDPClient {
     }
 
     // function for decrypting received messages
-    private static String decrypt(SecretKeySpec myKey, byte[] message) throws Exception{
+    public static String decrypt(SecretKeySpec myKey, byte[] message) throws Exception{
         message = Base64.getDecoder().decode(message);
         AEScipher = Cipher.getInstance("AES");
         AEScipher.init(Cipher.DECRYPT_MODE,myKey);
@@ -194,5 +219,45 @@ public class UDPClient {
         return key;
     }
 
+}
+
+class ServerListener extends Thread{
+    Socket s;
+    boolean chatting;
+    DataInputStream inbound;
+    SecretKeySpec CK_A;
+
+    ServerListener(Socket s, SecretKeySpec CK_A, DataInputStream inbound, boolean chatting){
+        this.s = s;
+        this.CK_A = CK_A;
+        this.inbound = inbound;
+        this.chatting = chatting;
+    }
+
+    public void run(){
+        String received = "";
+        System.out.println("In client thread");
+        while(true){
+            try {
+                received = UDPClient.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if(received.contains("UNREACHABLE(")){
+                System.out.println("Correspondent Unreachable");
+            }
+
+            if(received.contains("chatting with")) {
+                System.out.println(received);
+                chatting = true;
+                UDPClient.chatting = true;
+            }
+
+            if(chatting == true)
+                System.out.println(received);
+
+        }
+    }
 }
 

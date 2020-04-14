@@ -88,6 +88,7 @@ public class UDPServer {
                     received = encrypted;
                     skip = true;
                     createTCPconnection(rand_cookie,TCPport,CK_A,client_Address,validate_user);
+
                     //// create the TCP connection thread here /////
                     //Thread thr = new TCPhandler(rand_cookie,TCPport);
                     //thr.start();
@@ -187,21 +188,28 @@ class TCPhandler extends Thread{
     public static ArrayList<InetAddress> connectedClientsIP;
     private static ArrayList<Boolean> clientInChat;
     private static ArrayList<SecretKeySpec> clientKeys;
+    private static ArrayList<Socket> clientSockets;
+    private static ArrayList<String> chattingPartner;
+    //private static ServerSocket TCPconn;
     private int rand_cookie,port;
     private SecretKeySpec CK_A;
     private InetAddress userIP;
     private String userID;
 
-    public TCPhandler(){
+    public TCPhandler() throws IOException {
         this.clientPort = new ArrayList<Integer>();
         this.connectedClients = new ArrayList<String>();
         this.connectedClientsIP = new ArrayList<InetAddress>();
         this.clientInChat = new ArrayList<Boolean>();
         this.clientKeys = new ArrayList<SecretKeySpec>();
+        this.clientSockets = new ArrayList<Socket>( );
+        this.chattingPartner = new ArrayList<String>();
+       // this.TCPconn = new ServerSocket(15334);
     }
 
     public TCPhandler(int rand_cookie, int port, SecretKeySpec CK_A, InetAddress ip, String userID){
         this.rand_cookie = rand_cookie;
+        this.userID = userID;
         this.port = port;
         this.CK_A = CK_A;
         clientKeys.add(CK_A);
@@ -209,13 +217,16 @@ class TCPhandler extends Thread{
         connectedClientsIP.add(ip);
         connectedClients.add(userID);
         clientInChat.add(false);
+        chattingPartner.add("");
     }
 
     public void run(){
         try {
             ServerSocket TCPconn = new ServerSocket(port);
-            Socket in = null;
-            in = TCPconn.accept();
+            Socket in = TCPconn.accept();
+            clientSockets.add(in);
+
+
             DataInputStream inbound = new DataInputStream(in.getInputStream());
             DataOutputStream outbound = new DataOutputStream(in.getOutputStream());
 
@@ -237,14 +248,37 @@ class TCPhandler extends Thread{
                     break;
                 }
 
+                if(received.contains("CHAT(")){
+                    String message = received.substring(5,received.length()-1);
+                    int index = chattingPartner.indexOf(this.userID);
+                    DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
+                    sending = new String(UDPServer.encrypt(clientKeys.get(index),message),StandardCharsets.US_ASCII);
+                    temp.writeUTF(sending);
+                }
+
                 if(received.contains("CHAT_REQUEST(")){
                     String checkIfConnected = received.substring(23,received.length()-1);
                     System.out.println(checkIfConnected);
                     int index;
                     if(connectedClients.contains(checkIfConnected)){
                         index = connectedClients.indexOf(checkIfConnected);
-                        if(clientInChat.get(index) == false)
-                            System.out.println("now to start the chat phase"); // how to start the chat???
+                        if(clientInChat.get(index) == false) {
+                            System.out.println("now to start the chat phase");
+                            sending = "You are now chatting with " + checkIfConnected;
+                            sending = new String(UDPServer.encrypt(CK_A,sending),StandardCharsets.US_ASCII);
+                            outbound.writeUTF(sending);
+                            DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
+                            sending = "You are now chatting with " + this.userID;
+                            /// i need the key for this socket but lets roll with it for now
+                            sending = new String(UDPServer.encrypt(clientKeys.get(index),sending),StandardCharsets.US_ASCII);
+                            temp.writeUTF(sending);
+
+                            // sets the chatting partner and inchat param for each client
+                            chattingPartner.set(index,this.userID);
+                            clientInChat.set(index,true);
+                            chattingPartner.set(connectedClients.indexOf(this.userID),checkIfConnected);
+                            clientInChat.set(connectedClients.indexOf(this.userID),true);
+                        }
                         else{
                             sending = "UNREACHABLE(" + checkIfConnected + ")";
                             sending = new String(UDPServer.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
@@ -257,6 +291,7 @@ class TCPhandler extends Thread{
                         outbound.writeUTF(sending);
                     }
                 }
+
             }
 
         } catch (IOException e) {
