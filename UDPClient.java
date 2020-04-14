@@ -1,6 +1,8 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.crypto.Data;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -12,15 +14,19 @@ import java.util.Scanner;
 import java.io.IOException;
 
 
-public class UDPClient {
+public class UDPClient{
 
     private static DatagramSocket d;
     private static DatagramPacket DPreceived, DPsending;
     private static SecretKeySpec CK_A;
     private static Cipher AEScipher;
     private static byte[] received;
-    private static String clientID = "jas151530";
-    private static String password = "password1";
+    public static boolean chatting = false;
+    public static String sessionID;
+    //private static String clientID = "jas151530";
+    //private static String password = "password1";
+    private static String clientID = "msn160030";
+    private static String password = "password4";
 
 
     public static void main(String[] args) throws Exception{
@@ -32,6 +38,7 @@ public class UDPClient {
         DatagramSocket d = new DatagramSocket();
         InetAddress ip = InetAddress.getLocalHost();
         String in, out, rand = "";
+        String rand_cookie = "", TCP_port = "";
         boolean nextIsAUTH = false;
 
         System.out.println("This is just to get the UDP authentication working just type 'Log on' \n\tand" +
@@ -66,6 +73,7 @@ public class UDPClient {
                     nextIsAUTH = true;
                     DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12002);
                     d.send(DPsending);
+                    out = "";
                     continue;
                 }
                 if(in.contains("AUTH_FAIL")){
@@ -77,24 +85,82 @@ public class UDPClient {
                     CK_A = A8(rand, password);
 
                     String w = decrypt(CK_A, in.trim().getBytes("UTF-8"));
-                    System.out.println(w);
-                    System.out.println("Password correct");
-                    System.out.println("\tStill need to create the cookie and port number part here\n" +
-                            "\tas well as create the encrypted channel for communication -JS");
+                    int end, comma_location;
+                    comma_location = w.indexOf(",");
+                    end = w.length();
+                    rand_cookie = w.substring(13,comma_location);
+                    TCP_port = w.substring(comma_location+1, end-1);
+
                     break;
                 }
 
-                System.out.println("Server: " + in);
             }
             else
                 break;
         }
         d.close();
-        System.out.println("out of client loop");
+        startTCPconn(ip,rand_cookie,TCP_port);
+    }
+
+    private static void startTCPconn (InetAddress ip,String rand_cookie, String TCP_port) throws Exception {
+        Socket s = new Socket(ip,Integer.parseInt(TCP_port));
+        DataInputStream inbound = new DataInputStream(s.getInputStream());
+        DataOutputStream outbound = new DataOutputStream(s.getOutputStream());
+        String received, sending;
+        Scanner in = new Scanner(System.in);
+
+        // send the initial connect message
+        String connect = "CONNECT(" + rand_cookie + ")";
+        sending = new String(encrypt(CK_A,connect),StandardCharsets.US_ASCII);
+        outbound.writeUTF(sending);
+
+        // receiving initial message indicating that user is connected
+        received = decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+        if(received.equals("CONNECTED"))
+            System.out.println("You are connected");
+
+        ////// put the listener class info here
+        Thread t = new ServerListener(s,CK_A,inbound);
+        t.start();
+
+        // all outbound messages must be encrypted and all inbound must be decrypted
+        while(true){
+            String input = in.nextLine();
+            if(input.equals("Log off")) {
+                sending = new String(encrypt(CK_A,input),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
+                break;
+            }
+
+            if(input.contains("Chat Client-ID-")){
+                String toSend = "CHAT_REQUEST(" + input.substring(5) + ")";
+                sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
+            }
+
+            /////// sending the chat message ///////
+            if(chatting){
+                if(input.equals("End chat")) {
+                    String toSend = "END_REQUEST(" + sessionID + ")";
+                    sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                    chatting = false;
+                    System.out.println("Chat ended");
+                }
+                else {
+                    String toSend = "CHAT("+ sessionID + "," + input + ")";
+                    sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                }
+            }
+
+        }
+        t.join();
+        s.close();
     }
 
     // function for encryption of messages
-    private static byte[] encrypt(SecretKeySpec myKey, String message) throws Exception {
+    public static byte[] encrypt(SecretKeySpec myKey, String message) throws Exception {
         AEScipher = Cipher.getInstance("AES");
         AEScipher.init(Cipher.ENCRYPT_MODE, myKey);
         byte[] toEncrypt = message.getBytes("UTF-8");
@@ -105,7 +171,7 @@ public class UDPClient {
     }
 
     // function for decrypting received messages
-    private static String decrypt(SecretKeySpec myKey, byte[] message) throws Exception{
+    public static String decrypt(SecretKeySpec myKey, byte[] message) throws Exception{
         message = Base64.getDecoder().decode(message);
         AEScipher = Cipher.getInstance("AES");
         AEScipher.init(Cipher.DECRYPT_MODE,myKey);
@@ -149,5 +215,63 @@ public class UDPClient {
         return key;
     }
 
+}
+
+class ServerListener extends Thread{
+    Socket s;
+    DataInputStream inbound;
+    SecretKeySpec CK_A;
+
+    ServerListener(Socket s, SecretKeySpec CK_A, DataInputStream inbound){
+        this.s = s;
+        this.CK_A = CK_A;
+        this.inbound = inbound;
+    }
+
+    public void run(){
+        String received = "";
+        System.out.println("In client thread");
+        while(true){
+            try {
+                received = UDPClient.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if(received.contains("UNREACHABLE(")){
+                System.out.println("Correspondent Unreachable");
+            }
+
+            if(received.contains("CHAT_STARTED(")) {
+                System.out.print("You are now chatting with ");
+                System.out.println(received.substring(received.indexOf(",")+1,received.length()-1));
+                UDPClient.chatting = true;
+                UDPClient.sessionID = received.substring(13,received.indexOf(","));
+                System.out.println("SessionID: " + UDPClient.sessionID);
+                System.out.println(received);
+                continue;
+            }
+
+            if(received.contains("END_NOTIF(")){
+                UDPClient.chatting = false;
+                System.out.println("Chat ended");
+            }
+
+            if(UDPClient.chatting == true)
+                System.out.println(received);
+
+            if(received.equals("EXIT()")){
+                break;
+            }
+
+        }
+
+        // close the input stream before returning
+        try {
+            inbound.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
