@@ -1,6 +1,5 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.math.BigInteger;
@@ -14,7 +13,7 @@ import java.util.Scanner;
 import java.io.IOException;
 
 
-public class Client{
+public class Client {
 
     private static DatagramSocket d;
     private static DatagramPacket DPreceived, DPsending;
@@ -23,10 +22,10 @@ public class Client{
     private static byte[] received;
     public static boolean chatting = false;
     public static String sessionID;
-    //private static String clientID = "jas151530";
-    //private static String password = "password1";
-    private static String clientID = "msn160030";
-    private static String password = "password4";
+    private static String clientID = "jas";
+    private static String password = "password1";
+    //private static String clientID = "hzs";
+    //private static String password = "password3";
 
 
     public static void main(String[] args) throws Exception{
@@ -134,6 +133,12 @@ public class Client{
 
             if(input.contains("Chat Client-ID-")){
                 String toSend = "CHAT_REQUEST(" + input.substring(5) + ")";
+                sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
+            }
+
+            if(input.contains("History Client-ID-")){
+                String toSend = "HISTORY_REQ(" + input.substring(18) + ")";
                 sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
                 outbound.writeUTF(sending);
             }

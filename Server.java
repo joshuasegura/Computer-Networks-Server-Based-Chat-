@@ -1,9 +1,7 @@
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.*;
@@ -11,13 +9,15 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Random;
-import java.util.Arrays;
-import java.util.ArrayList;
+import java.util.*;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+
 
 public class Server {
-
 
     private static DatagramSocket d;
     private static DatagramPacket DPreceived,DPsending;
@@ -27,10 +27,10 @@ public class Server {
     private static String validate_user;
     public static ArrayList<String> real_users = new ArrayList<String>(){
         {
-            add("jas151530");
-            add("rhs160030");
-            add("hzs170003");
-            add("msn160030");
+            add("jas");
+            add("rhs");
+            add("hzs");
+            add("msn");
         }
     };
     public static ArrayList<String> passwords = new ArrayList<String>(){
@@ -175,10 +175,12 @@ public class Server {
 
     // This method creates the TCP connection
     private static void createTCPconnection(int rand_cookie,int TCPport,SecretKeySpec CK_A,
-                                    InetAddress ip, String validate_user){
+                                    InetAddress ip, String validate_user) throws InterruptedException {
 
         Thread thr = new TCPhandler(rand_cookie,TCPport,CK_A,validate_user);
         thr.start();
+
+        /////
     }
 }
 
@@ -237,9 +239,6 @@ class TCPhandler extends Thread{
                 if(received.equals("Log off")) {
                     sending = new String(Server.encrypt(CK_A,"EXIT()"),StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
-                    in.close();
-                    outbound.close();
-                    TCPconn.close();
                     ///// remove the users info from all the Array lists /////
                     int index = connectedClients.indexOf(this.userID);
                     clientKeys.remove(index);
@@ -247,6 +246,12 @@ class TCPhandler extends Thread{
                     clientInChat.remove(index);
                     clientSession.remove(index);
                     clientSockets.remove(index);
+
+                    // close the sockets and data streams
+                    inbound.close();
+                    outbound.close();
+                    in.close();
+                    TCPconn.close();
                     break;
                 }
 
@@ -255,17 +260,90 @@ class TCPhandler extends Thread{
                     int index = connectedClients.indexOf(this.userID);
                     int session = clientSession.get(index);
 
-                        int idx = clientSession.indexOf(session);
-                        if(idx != index){
-                            index = idx;
-                        }
-                        else{
-                            index = clientSession.lastIndexOf(session);
-                        }
+                    int idx = clientSession.indexOf(session);
+                    if(idx != index){
+                        index = idx;
+                    }
+                    else{
+                        index = clientSession.lastIndexOf(session);
+                    }
+
+
+                    //////// THIS IS TO TEST THE HISTORY RECORDING SECTION
+                    JSONParser parser = new JSONParser();
+                    JSONArray messageArr;
+                    JSONObject messageDetails = new JSONObject();
+                    messageDetails.put("SessionID", session);
+                    if(this.userID.compareToIgnoreCase(connectedClients.get(index)) < 0){
+                        // userID is first
+                        messageDetails.put("Client-ID-1", this.userID);
+                        messageDetails.put("Client-ID-2", connectedClients.get(index));
+                    }
+                    else{
+                        messageDetails.put("Client-ID-1", connectedClients.get(index));
+                        messageDetails.put("Client-ID-2", this.userID);
+                    }
+                    messageDetails.put("SendingClient", this.userID);
+                    messageDetails.put("Message", message);
+
+                    File historyFile = new File("chatHistory.json");
+                    FileWriter history;
+
+                    if(historyFile.exists()){
+                        System.out.println("In here");
+                        FileReader read = new FileReader(historyFile);
+                        Object obj = parser.parse(read);
+                        messageArr = (JSONArray)obj;
+                        read.close();
+                        history = new FileWriter(historyFile,false);
+                    }
+                    else {
+                        history = new FileWriter(historyFile);
+                        messageArr = new JSONArray();
+                    }
+                    messageArr.add(messageDetails);
+                    history.write(messageArr.toJSONString());
+                    history.flush();
+                    history.close();
+
+
+                    System.out.println(messageDetails);
+                    //////// END OF HISTORY RECORDING SECTION
 
                     DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
                     sending = new String(Server.encrypt(clientKeys.get(index),message),StandardCharsets.US_ASCII);
                     temp.writeUTF(sending);
+                }
+
+                if(received.contains("HISTORY_REQ(")){
+                    String first, second;
+                    System.out.println(this.userID +"|"+ received.substring(12,received.length()-1));
+                    System.out.println(this.userID.compareToIgnoreCase(received.substring(12,received.length()-1)) );
+                    if(this.userID.compareToIgnoreCase(received.substring(12,received.length()-1)) < 0) {
+                        first = this.userID;
+                        second = received.substring(12,received.length()-1);
+                    }
+                    else{
+                        second = this.userID;
+                        first = received.substring(12,received.length()-1);
+                    }
+                    System.out.println(first + "|" + second);
+                    JSONParser jp = new JSONParser();
+                    FileReader read = new FileReader("chatHistory.json");
+                    Object o = jp.parse(read);
+                    JSONArray messageInfo = (JSONArray)o;
+                    read.close();
+                    Iterator i = messageInfo.iterator();
+                    while(i.hasNext()){
+                        Object t = i.next();
+                        JSONObject j = (JSONObject)t;
+                        if(j.get("Client-ID-1").toString().equals(first) &&
+                                j.get("Client-ID-2").toString().equals(second)){
+                            String res = "HISTORY_RESP(<" + j.get("SessionID") + "><from:" + j.get("SendingClient") +
+                                    "><" + j.get("Message") + ">)";
+                            System.out.println(res);
+                        }
+                    }
                 }
 
                 if(received.contains("CHAT_REQUEST(")){
