@@ -22,10 +22,10 @@ public class Client {
     private static byte[] received;
     public static boolean chatting = false;
     public static String sessionID;
-    private static String clientID = "jas";
-    private static String password = "password1";
-    //private static String clientID = "hzs";
-    //private static String password = "password3";
+    //private static String clientID = "jas";
+    //private static String password = "password1";
+    private static String clientID = "hzs";
+    private static String password = "password3";
 
 
     public static void main(String[] args) throws Exception{
@@ -71,7 +71,15 @@ public class Client {
             }
             if(in.contains("AUTH_FAIL")){
                 System.out.println("Incorrect password .... exiting");
-                System.exit(-1);
+                System.exit(0);
+            }
+            if(in.contains("INVALID")){
+                System.out.println("You are not a registered user");
+                System.exit(0);
+            }
+            if(in.contains("DENIED")){
+                System.out.println("This user is already logged on");
+                System.exit(0);
             }
             if(nextIsAUTH == true){
                 // create encryption key
@@ -263,8 +271,6 @@ class ServerListener extends Thread{
                 System.out.println(received.substring(received.indexOf(",")+1,received.length()-1));
                 Client.chatting = true;
                 Client.sessionID = received.substring(13,received.indexOf(","));
-                System.out.println("SessionID: " + Client.sessionID);
-                System.out.println(received);
                 continue;
             }
 

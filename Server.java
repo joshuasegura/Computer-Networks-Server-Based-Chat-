@@ -18,6 +18,7 @@ public class Server {
     private static Cipher AEScipher;
     private static SecretKeySpec CK_A;
     private static String validate_user;
+    public static ArrayList<String>connected_clients = new ArrayList<String>();
     public static ArrayList<String> real_users = new ArrayList<String>(){
         {
             add("jas");
@@ -60,14 +61,18 @@ public class Server {
             if(in.contains("HELLO(")){
                 int end = in.length();
                 validate_user = in.substring(6,end-1);
-                if(real_users.contains(validate_user)){
+                if(real_users.contains(validate_user) && !connected_clients.contains(validate_user)){
+                    connected_clients.add(validate_user);
                     index = real_users.indexOf(validate_user);
                     rand = random.nextInt(); // generates the random number
                     Xres = A3(rand, passwords.get(index));
                     out = "CHALLENGE(" + rand + ")";
                 }
                 else
-                    out = validate_user + " isn't a valid user";
+                    if(connected_clients.contains(validate_user))
+                        out = "DENIED ";
+                    if(!real_users.contains(validate_user))
+                        out = "INVALID";
             }
             else if(in.contains("RESPONSE(")){
                 String res = in.substring(9,in.length()-1);
@@ -86,9 +91,6 @@ public class Server {
                     out = "AUTH_FAIL";
             }
 
-            if(in.contains("bye"))
-                break;
-
             if(skip == false){
                 DPsending = new DatagramPacket(out.getBytes(),out.length(),client_Address,client_port);
                 d.send(DPsending);
@@ -101,7 +103,6 @@ public class Server {
             }
 
         }
-        System.out.println("out of server loop");
     }
 
     // function for encryption of messages
@@ -185,12 +186,13 @@ class TCPhandler extends Thread{
     private String userID;
 
     public TCPhandler() throws IOException {
-        this.connectedClients = new ArrayList<String>();
-        this.clientInChat = new ArrayList<Boolean>();
-        this.clientKeys = new ArrayList<SecretKeySpec>();
-        this.clientSockets = new ArrayList<Socket>( );
-        this.clientSession = new ArrayList<Integer>();
-        this.sessionID = 0;
+        connectedClients = new ArrayList<String>();
+        clientInChat = new ArrayList<Boolean>();
+        clientKeys = new ArrayList<SecretKeySpec>();
+        clientSockets = new ArrayList<Socket>( );
+        clientSession = new ArrayList<Integer>();
+        sessionID = 0; // sets the initial value for sessionID
+        getMaxSessionID();
     }
 
     public TCPhandler(int rand_cookie, int port, SecretKeySpec CK_A, String userID){
@@ -235,6 +237,7 @@ class TCPhandler extends Thread{
                     clientInChat.remove(index);
                     clientSession.remove(index);
                     clientSockets.remove(index);
+                    Server.connected_clients.remove(this.userID);
 
                     // close the sockets and data streams
                     inbound.close();
@@ -294,6 +297,25 @@ class TCPhandler extends Thread{
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void getMaxSessionID() throws IOException {
+        // Following block reads the json file and parses it
+        FileReader reader = new FileReader("chatHistory.json");
+        JsonParser parser = new JsonParser();
+        Object o = parser.parse(reader);
+        reader.close();
+
+        // converts the read object to JsonArray to iterate over
+        JsonArray messageDetails = (JsonArray)o;
+        Iterator i = messageDetails.iterator();
+
+        // Iterates over the array and finds all chat messages between the two clients
+        while (i.hasNext()){
+            JsonObject j = (JsonObject)i.next();
+            if(j.get("SessionID").getAsInt() > sessionID)
+                sessionID = j.get("SessionID").getAsInt();
         }
     }
 
