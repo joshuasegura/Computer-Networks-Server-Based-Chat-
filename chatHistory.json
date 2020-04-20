@@ -1,23 +1,162 @@
-[{"Message":"Hey josh","SendingClient":"rhs","Client-ID-2":"rhs","Client-ID-1":"jas","SessionID":1},
-  {"Message":"how are u","SendingClient":"rhs","Client-ID-2":"rhs","Client-ID-1":"jas","SessionID":1},
-  {"Message":"I'm good u","SendingClient":"jas","Client-ID-2":"rhs","Client-ID-1":"jas","SessionID":1},
-  {"Message":"great","SendingClient":"rhs","Client-ID-2":"rhs","Client-ID-1":"jas","SessionID":1},
-  {"Message":"thats good","SendingClient":"jas","Client-ID-2":"rhs","Client-ID-1":"jas","SessionID":1},
-  {"Message":"g2g","SendingClient":"jas","Client-ID-2":"rhs","Client-ID-1":"jas","SessionID":1},
-  {"Message":"bye","SendingClient":"jas","Client-ID-2":"rhs","Client-ID-1":"jas","SessionID":1},
-
-
-  {"Message":"hey gut","SendingClient":"rhs","Client-ID-2":"rhs","Client-ID-1":"msn","SessionID":1},
-  {"Message":"afdsf","SendingClient":"msn","Client-ID-2":"rhs","Client-ID-1":"msn","SessionID":1},
-  {"Message":"fsf","SendingClient":"rhs","Client-ID-2":"rhs","Client-ID-1":"msn","SessionID":1},
-  {"Message":"dfsf","SendingClient":"msn","Client-ID-2":"rhs","Client-ID-1":"msn","SessionID":1},
-  {"Message":"asdf","SendingClient":"hzs","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":2},
-  {"Message":"sgdfgg","SendingClient":"jas","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":2},
-  {"Message":"asdf","SendingClient":"jas","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":2},
-  {"Message":"End Chat","SendingClient":"jas","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":2},
-  {"Message":"Chat Client-ID-hzs","SendingClient":"jas","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":2},
-  {"Message":"jjjj","SendingClient":"jas","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":2},
-  {"Message":"wow you tried to leave","SendingClient":"hzs","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":3},
-  {"Message":"rude","SendingClient":"hzs","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":3},
-  {"Message":"Stop ","SendingClient":"jas","Client-ID-2":"jas","Client-ID-1":"hzs","SessionID":3}]
-
+[
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "hey"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "this is a test"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "okay"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "bye"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "well here we go again another test"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "bye"
+  },
+  {
+    "SessionID": 2,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "another one"
+  },
+  {
+    "SessionID": 2,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "funny guy"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "yet another test",
+    "Time": "Mon Apr 20 12:09:44 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "tis but a scratch",
+    "Time": "Mon Apr 20 12:10:00 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "123 testing testing testing 123",
+    "Time": "Mon Apr 20 12:10:15 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "Monty Python and the quest for the holy grail",
+    "Time": "Mon Apr 20 12:10:29 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "Bye",
+    "Time": "Mon Apr 20 12:10:32 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "hey",
+    "Time": "Mon Apr 20 16:02:11 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "alright i fixed the brokenness",
+    "Time": "Mon Apr 20 16:02:22 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "i don\u0027t think you spelled that right",
+    "Time": "Mon Apr 20 16:02:35 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "end chat",
+    "Time": "Mon Apr 20 16:03:54 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "okay",
+    "Time": "Mon Apr 20 16:05:33 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "another time",
+    "Time": "Mon Apr 20 16:05:37 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "asdf",
+    "Time": "Mon Apr 20 16:16:23 CDT 2020"
+  },
+  {
+    "SessionID": 1,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "end chat",
+    "Time": "Mon Apr 20 16:16:31 CDT 2020"
+  }
+]

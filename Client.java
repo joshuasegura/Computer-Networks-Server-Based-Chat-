@@ -40,62 +40,52 @@ public class Client {
         String rand_cookie = "", TCP_port = "";
         boolean nextIsAUTH = false;
 
-        System.out.println("This is just to get the UDP authentication working just type 'Log on' \n\tand" +
-                " follow the steps from there, the password for now is just password" );
+        System.out.println("Welcome: To sign on enter 'Log on' ");
         out = input.nextLine();
 
         while(true){
-            if(!out.equals("bye")){
-                if (out.equals("Log on")) {
-                    out = "HELLO(" + clientID + ")";
-                }
-
-                // sends the packet to the server
-                DPsending = new DatagramPacket(out.getBytes("UTF-8"),out.length(),ip,12002);
-                d.send(DPsending);
-
-                // buffer for data sent by the server
-                received = new byte[65536];
-                DPreceived = new DatagramPacket(received,received.length);
-                d.receive(DPreceived);
-                System.out.println(DPreceived.getData());
-                in = new String(DPreceived.getData(),StandardCharsets.US_ASCII);
-                System.out.println(in);
-                System.out.println(in.trim());
-
-
-                if(in.contains("CHALLENGE(")){
-                    int end = in.trim().length();
-                    rand = in.substring(10,end-1);
-                    String res = A3(rand, password);
-                    out = "RESPONSE(" + res + ")";
-                    nextIsAUTH = true;
-                    DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12002);
-                    d.send(DPsending);
-                    out = "";
-                    continue;
-                }
-                if(in.contains("AUTH_FAIL")){
-                    System.out.println("Incorrect password .... exiting");
-                    break;
-                }
-                if(nextIsAUTH == true){
-                    // create encryption key
-                    CK_A = A8(rand, password);
-
-                    String w = decrypt(CK_A, in.trim().getBytes("UTF-8"));
-                    int end, comma_location;
-                    comma_location = w.indexOf(",");
-                    end = w.length();
-                    rand_cookie = w.substring(13,comma_location);
-                    TCP_port = w.substring(comma_location+1, end-1);
-
-                    break;
-                }
-
+            if (out.equalsIgnoreCase("Log on")) {
+                out = "HELLO(" + clientID + ")";
             }
-            else
+
+            // sends the packet to the server
+            DPsending = new DatagramPacket(out.getBytes("UTF-8"),out.length(),ip,12002);
+            d.send(DPsending);
+
+            // buffer for data sent by the server
+            received = new byte[65536];
+            DPreceived = new DatagramPacket(received,received.length);
+            d.receive(DPreceived);
+            in = new String(DPreceived.getData(),StandardCharsets.US_ASCII);
+
+            if(in.contains("CHALLENGE(")){
+                int end = in.trim().length();
+                rand = in.substring(10,end-1);
+                String res = A3(rand, password);
+                out = "RESPONSE(" + res + ")";
+                nextIsAUTH = true;
+                DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12002);
+                d.send(DPsending);
+                out = "";
+                continue;
+            }
+            if(in.contains("AUTH_FAIL")){
+                System.out.println("Incorrect password .... exiting");
+                System.exit(-1);
+            }
+            if(nextIsAUTH == true){
+                // create encryption key
+                CK_A = A8(rand, password);
+
+                String w = decrypt(CK_A, in.trim().getBytes("UTF-8"));
+                int end, comma_location;
+                comma_location = w.indexOf(",");
+                end = w.length();
+                rand_cookie = w.substring(13,comma_location);
+                TCP_port = w.substring(comma_location+1, end-1);
+
                 break;
+            }
         }
         d.close();
         startTCPconn(ip,rand_cookie,TCP_port);
@@ -118,39 +108,62 @@ public class Client {
         if(received.equals("CONNECTED"))
             System.out.println("You are connected");
 
-        ////// put the listener class info here
+        // spawns a new thread to listen to messages from the server
         Thread t = new ServerListener(s,CK_A,inbound);
         t.start();
 
         // all outbound messages must be encrypted and all inbound must be decrypted
         while(true){
             String input = in.nextLine();
-            if(input.equals("Log off")) {
-                sending = new String(encrypt(CK_A,input),StandardCharsets.US_ASCII);
-                outbound.writeUTF(sending);
-                break;
-            }
+            if(!chatting) {
+                // sends a message to the server to indicate that the user is logging off
+                if (input.equalsIgnoreCase("Log off")) {
+                    sending = new String(encrypt(CK_A, input), StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                    break;
+                }
 
-            if(input.contains("Chat Client-ID-")){
-                String toSend = "CHAT_REQUEST(" + input.substring(5) + ")";
-                sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
-                outbound.writeUTF(sending);
-            }
+                // sends a message to the server indicating the clients request to chat with another client
+                if (input.length() > 15 && input.substring(0, 15).equalsIgnoreCase("Chat Client-ID-")) {
+                    if(input.substring(15).equals(clientID))
+                        System.out.println("You can't chat with yourself");
+                    else {
+                        String toSend = "CHAT_REQUEST(" + input.substring(5) + ")";
+                        sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
+                        outbound.writeUTF(sending);
+                    }
+                    continue;
+                }
 
-            if(input.contains("History Client-ID-")){
-                String toSend = "HISTORY_REQ(" + input.substring(18) + ")";
-                sending = new String(encrypt(CK_A,toSend),StandardCharsets.US_ASCII);
-                outbound.writeUTF(sending);
+                // sends a message to the server that the client wants chat history with a specific client
+                if (input.length() > 18 && input.substring(0, 18).equalsIgnoreCase("History Client-ID-")) {
+                    if(input.substring(18).equals(clientID))
+                        System.out.println("You don't have chat history with yourself");
+                    else{
+                        String toSend = "HISTORY_REQ(" + input.substring(18) + ")";
+                        sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
+                        outbound.writeUTF(sending);
+                    }
+                    continue;
+                }
             }
-
-            /////// sending the chat message ///////
+            /////// sending the chat messages ///////
             if(chatting){
-                if(input.equals("End chat")) {
+                if(input.equalsIgnoreCase("End chat")) {
                     String toSend = "END_REQUEST(" + sessionID + ")";
                     sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
                     chatting = false;
                     System.out.println("Chat ended");
+                }
+                else if(input.length() > 15 && input.substring(0,15).equalsIgnoreCase("Chat Client-ID-")){
+                    System.out.println("You must end the chat before chatting with a new client.");
+                }
+                else if(input.length() > 18 && input.substring(0,18).equalsIgnoreCase("History Client-ID-")){
+                    System.out.println("You must end the chat before viewing your chat history.");
+                }
+                else if(input.equalsIgnoreCase("Log off")){
+                    System.out.println("You must end the chat before logging off.");
                 }
                 else {
                     String toSend = "CHAT("+ sessionID + "," + input + ")";
@@ -158,7 +171,6 @@ public class Client {
                     outbound.writeUTF(sending);
                 }
             }
-
         }
         t.join();
         s.close();
@@ -235,7 +247,6 @@ class ServerListener extends Thread{
 
     public void run(){
         String received = "";
-        System.out.println("In client thread");
         while(true){
             try {
                 received = Client.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
@@ -255,6 +266,13 @@ class ServerListener extends Thread{
                 System.out.println("SessionID: " + Client.sessionID);
                 System.out.println(received);
                 continue;
+            }
+
+            if(received.contains("HISTORY_RESP(")){
+                if(received.length() == 14)
+                    System.out.println("No chat history between you and the requested user");
+                else
+                    System.out.println(received.substring(13,received.length()-1));
             }
 
             if(received.contains("END_NOTIF(")){
