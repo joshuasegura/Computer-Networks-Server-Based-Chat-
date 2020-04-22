@@ -24,8 +24,8 @@ public class Client {
     public static String sessionID;
     //private static String clientID = "jas";
     //private static String password = "password1";
-    private static String clientID = "hzs";
-    private static String password = "password3";
+    private static String clientID = "rhs";
+    private static String password = "password2";
 
 
     public static void main(String[] args) throws Exception{
@@ -42,6 +42,9 @@ public class Client {
 
         System.out.println("Welcome: To sign on enter 'Log on' ");
         out = input.nextLine();
+        while(!out.equalsIgnoreCase("Log on")){
+            out= input.nextLine();
+        }
 
         while(true){
             if (out.equalsIgnoreCase("Log on")) {
@@ -117,16 +120,18 @@ public class Client {
             System.out.println("You are connected");
 
         // spawns a new thread to listen to messages from the server
-        Thread t = new ServerListener(s,CK_A,inbound);
+        Thread t = new ServerListener(s,CK_A,inbound,outbound);
         t.start();
 
         // all outbound messages must be encrypted and all inbound must be decrypted
         while(true){
             String input = in.nextLine();
+
+            /******* FOLLOWING BLOCK INPUT COMMANDS IF NOT IN A CHAT *********/
             if(!chatting) {
                 // sends a message to the server to indicate that the user is logging off
                 if (input.equalsIgnoreCase("Log off")) {
-                    sending = new String(encrypt(CK_A, input), StandardCharsets.US_ASCII);
+                    sending = new String(encrypt(CK_A, input.toUpperCase()), StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
                     break;
                 }
@@ -154,8 +159,12 @@ public class Client {
                     }
                     continue;
                 }
+
+                // if the user doesn't input a valid command it still sends to update the timeout for the server
+                sending = new String(encrypt(CK_A, input),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
             }
-            /////// sending the chat messages ///////
+            /***** Following Block for if in a Chat *******/
             if(chatting){
                 if(input.equalsIgnoreCase("End chat")) {
                     String toSend = "END_REQUEST(" + sessionID + ")";
@@ -245,32 +254,54 @@ public class Client {
 class ServerListener extends Thread{
     Socket s;
     DataInputStream inbound;
+    DataOutputStream outbound;
     SecretKeySpec CK_A;
 
-    ServerListener(Socket s, SecretKeySpec CK_A, DataInputStream inbound){
+    ServerListener(Socket s, SecretKeySpec CK_A, DataInputStream inbound,DataOutputStream outbound){
         this.s = s;
         this.CK_A = CK_A;
         this.inbound = inbound;
+        this.outbound = outbound;
+    }
+
+    private void ping() throws Exception {
+        String s = "PING()";
+        s = new String(Client.encrypt(CK_A, s), StandardCharsets.US_ASCII);
+        outbound.writeUTF(s);
     }
 
     public void run(){
         String received = "";
-        while(true){
+        while(true) {
             try {
-                received = Client.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
+                received = Client.decrypt(CK_A, inbound.readUTF().getBytes("UTF-8"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            if(received.contains("UNREACHABLE(")){
+            if (received.contains("UNREACHABLE(")) {
                 System.out.println("Correspondent Unreachable");
+                continue;
             }
 
-            if(received.contains("CHAT_STARTED(")) {
+            if(received.contains("END_NOTIF(")){
+                Client.chatting = false;
+                System.out.println("Chat ended");
+                try { ping(); } catch (Exception e) { e.printStackTrace(); }
+                continue;
+            }
+
+            if(Client.chatting == true) {
+                System.out.println(received);
+                continue;
+            }
+
+            if (received.contains("CHAT_STARTED(") && Client.chatting == false) {
                 System.out.print("You are now chatting with ");
-                System.out.println(received.substring(received.indexOf(",")+1,received.length()-1));
+                System.out.println(received.substring(received.indexOf(",") + 1, received.length() - 1));
                 Client.chatting = true;
-                Client.sessionID = received.substring(13,received.indexOf(","));
+                Client.sessionID = received.substring(13, received.indexOf(","));
+                try { ping(); } catch (Exception e) { e.printStackTrace(); }
                 continue;
             }
 
@@ -279,18 +310,29 @@ class ServerListener extends Thread{
                     System.out.println("No chat history between you and the requested user");
                 else
                     System.out.println(received.substring(13,received.length()-1));
+
+                continue;
             }
 
-            if(received.contains("END_NOTIF(")){
-                Client.chatting = false;
-                System.out.println("Chat ended");
-            }
-
-            if(Client.chatting == true)
-                System.out.println(received);
 
             if(received.equals("EXIT()")){
                 break;
+            }
+
+            if(received.equals("TIMEOUT()")){
+                System.out.println("Disconnected due to inactivity");
+                System.exit(0);
+            }
+
+            if(received.equals("SPAM()")){
+                System.out.println("Disconnected due to possible spam");
+                System.exit(0);
+            }
+
+            if(received.equals("INCORRECT()")){
+                System.out.println("Incorrect Command, commands in the format of \n" +
+                        "1) Chat Client-ID-\n2) History Client-ID-\n3) Log off");
+                continue;
             }
 
         }

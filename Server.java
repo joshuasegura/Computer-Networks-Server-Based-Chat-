@@ -175,6 +175,10 @@ public class Server {
 }
 
 class TCPhandler extends Thread{
+    private ServerSocket TCPconn;
+    private Socket in;
+    private DataInputStream inbound;
+    private DataOutputStream outbound;
     public static ArrayList<Integer> clientSession;
     public static ArrayList<String> connectedClients;
     private static ArrayList<Boolean> clientInChat;
@@ -182,6 +186,7 @@ class TCPhandler extends Thread{
     private static ArrayList<Socket> clientSockets;
     private static int sessionID;
     private int rand_cookie,port;
+    private int incorrect;
     private SecretKeySpec CK_A;
     private String userID;
 
@@ -208,42 +213,42 @@ class TCPhandler extends Thread{
 
     public void run(){
         try {
-            ServerSocket TCPconn = new ServerSocket(port);
-            Socket in = TCPconn.accept();
+            TCPconn = new ServerSocket(port);
+            in = TCPconn.accept();
             clientSockets.add(in);
 
-            DataInputStream inbound = new DataInputStream(in.getInputStream());
-            DataOutputStream outbound = new DataOutputStream(in.getOutputStream());
+            inbound = new DataInputStream(in.getInputStream());
+            outbound = new DataOutputStream(in.getOutputStream());
 
             String received;
             String sending;
+            incorrect = 0;
 
             while(true){
+                /***** If the client is not in a chat set the timeout for inactivity to 1 minute o/w no timeout*****/
+                int id = connectedClients.indexOf(this.userID);
+                if(clientInChat.get(id) == false) {
+                    in.setSoTimeout(60000);
+                    System.out.println("1 minute " + this.userID);
+                }
+                else {
+                    in.setSoTimeout(0);
+                    System.out.println("Infinite " + this.userID);
+                }
+
                 received = Server.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
                 System.out.println(received);
                 if(received.equals("CONNECT(" + rand_cookie + ")")) {
                     sending = "CONNECTED";
                     sending = new String(Server.encrypt(CK_A, sending), StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
+                    continue;
                 }
 
-                if(received.equalsIgnoreCase("Log off")) {
+                if(received.equalsIgnoreCase("LOG OFF")) {
                     sending = new String(Server.encrypt(CK_A,"EXIT()"),StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
-                    ///// remove the users info from all the Array lists /////
-                    int index = connectedClients.indexOf(this.userID);
-                    clientKeys.remove(index);
-                    connectedClients.remove(index);
-                    clientInChat.remove(index);
-                    clientSession.remove(index);
-                    clientSockets.remove(index);
-                    Server.connected_clients.remove(this.userID);
-
-                    // close the sockets and data streams
-                    inbound.close();
-                    outbound.close();
-                    in.close();
-                    TCPconn.close();
+                    logOff();
                     break;
                 }
 
@@ -267,14 +272,17 @@ class TCPhandler extends Thread{
                     DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
                     sending = new String(Server.encrypt(clientKeys.get(index),message),StandardCharsets.US_ASCII);
                     temp.writeUTF(sending);
+                    continue;
                 }
 
                 if(received.contains("HISTORY_REQ(")){
                     getHistory(received,outbound);
+                    continue;
                 }
 
                 if(received.contains("CHAT_REQUEST(")){
                     initiateChat(received,outbound);
+                    continue;
                 }
 
                 if(received.contains("END_REQUEST(")){
@@ -283,21 +291,63 @@ class TCPhandler extends Thread{
                     clientInChat.set(index,false);
                     clientSession.set(index,-1);
                     index = clientSession.indexOf(session);
+                    clientInChat.set(index,false);
+                    clientSession.set(index,-1);
                     DataOutputStream temp = new DataOutputStream(clientSockets.get(index).getOutputStream());
                     sending = "END_NOTIF(" + clientSession.get(index) + ")";
                     sending = new String(Server.encrypt(clientKeys.get(index),sending),StandardCharsets.US_ASCII);
                     temp.writeUTF(sending);
-                    clientInChat.set(index,false);
-                    clientSession.set(index,-1);
+                    continue;
+                }
+
+                if(received.contains("PING()")){
+                    continue;
+                }
+
+                incorrect++;
+                if(incorrect == 4){
+                    sending = "INCORRECT()";
+                    sending = new String(Server.encrypt(CK_A,sending),StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                }
+                // if the number of incorrect requests is 7 spam detected and disconnect the user
+                if(incorrect == 7){
+                    sending = new String(Server.encrypt(CK_A,"SPAM()"),StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
+                    logOff();
+                    break;
                 }
 
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            try{
+            String sending = new String(Server.encrypt(this.CK_A,"TIMEOUT()"),StandardCharsets.US_ASCII);
+            outbound.writeUTF(sending);
+            logOff();
+            } catch (Exception e1){
+                e1.printStackTrace();
+            }
         } catch (Exception e) {
-            e.printStackTrace();
         }
+    }
+
+    private void logOff()
+            throws Exception {
+        ///// remove the users info from all the Array lists /////
+        int index = connectedClients.indexOf(this.userID);
+        clientKeys.remove(index);
+        connectedClients.remove(index);
+        clientInChat.remove(index);
+        clientSession.remove(index);
+        clientSockets.remove(index);
+        Server.connected_clients.remove(this.userID);
+
+        // close the sockets and data streams
+        inbound.close();
+        outbound.close();
+        in.close();
+        TCPconn.close();
     }
 
     private void getMaxSessionID() throws IOException {
@@ -421,6 +471,7 @@ class TCPhandler extends Thread{
                 clientSession.set(index,sessionID);
                 clientInChat.set(connectedClients.indexOf(this.userID),true);
                 clientSession.set(connectedClients.indexOf(this.userID),sessionID);
+
             }
             else{
                 sending = "UNREACHABLE(" + checkIfConnected + ")";
