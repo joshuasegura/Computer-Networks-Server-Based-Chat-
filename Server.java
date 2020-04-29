@@ -1,5 +1,5 @@
 import com.google.gson.*;
-
+import java.util.concurrent.Semaphore;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
@@ -69,10 +69,10 @@ public class Server {
                     out = "CHALLENGE(" + rand + ")";
                 }
                 else
-                    if(connected_clients.contains(validate_user))
-                        out = "DENIED ";
-                    if(!real_users.contains(validate_user))
-                        out = "INVALID";
+                if(connected_clients.contains(validate_user))
+                    out = "DENIED ";
+                if(!real_users.contains(validate_user))
+                    out = "INVALID";
             }
             else if(in.contains("RESPONSE(")){
                 String res = in.substring(9,in.length()-1);
@@ -165,7 +165,7 @@ public class Server {
 
     // This method creates the TCP connection
     private static void createTCPconnection(int rand_cookie,int TCPport,SecretKeySpec CK_A,
-                                    InetAddress ip, String validate_user) throws InterruptedException {
+                                            InetAddress ip, String validate_user) throws InterruptedException {
 
         Thread thr = new TCPhandler(rand_cookie,TCPport,CK_A,validate_user);
         thr.start();
@@ -190,7 +190,10 @@ class TCPhandler extends Thread{
     private SecretKeySpec CK_A;
     private String userID;
 
+    private static Semaphore s;
+
     public TCPhandler() throws IOException {
+        s = new Semaphore(1,true);
         connectedClients = new ArrayList<String>();
         clientInChat = new ArrayList<Boolean>();
         clientKeys = new ArrayList<SecretKeySpec>();
@@ -228,7 +231,7 @@ class TCPhandler extends Thread{
                 /***** If the client is not in a chat set the timeout for inactivity to 1 minute o/w no timeout*****/
                 int id = connectedClients.indexOf(this.userID);
                 if(clientInChat.get(id) == false) {
-                    in.setSoTimeout(60000);
+                    in.setSoTimeout(10000);
                     System.out.println("1 minute " + this.userID);
                 }
                 else {
@@ -319,14 +322,20 @@ class TCPhandler extends Thread{
                 }
 
             }
-
+            /**** This catch is temp ****/
         } catch (IOException e) {
             try{
-            String sending = new String(Server.encrypt(this.CK_A,"TIMEOUT()"),StandardCharsets.US_ASCII);
-            outbound.writeUTF(sending);
-            logOff();
+                String sending = new String(Server.encrypt(this.CK_A,"TIMEOUT()"),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
+                logOff();
             } catch (Exception e1){
-                e1.printStackTrace();
+                {
+                    try {
+                        logOff();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
         } catch (Exception e) {
         }
@@ -335,13 +344,17 @@ class TCPhandler extends Thread{
     private void logOff()
             throws Exception {
         ///// remove the users info from all the Array lists /////
+
+        s.acquire();
         int index = connectedClients.indexOf(this.userID);
+        index = clientKeys.indexOf(this.CK_A);
         clientKeys.remove(index);
         connectedClients.remove(index);
         clientInChat.remove(index);
         clientSession.remove(index);
         clientSockets.remove(index);
         Server.connected_clients.remove(this.userID);
+        s.release();
 
         // close the sockets and data streams
         inbound.close();

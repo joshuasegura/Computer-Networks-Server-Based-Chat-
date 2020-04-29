@@ -2,6 +2,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -22,45 +23,64 @@ public class Client {
     private static byte[] received;
     public static boolean chatting = false;
     public static String sessionID;
-    //private static String clientID = "jas";
-    //private static String password = "password1";
-    private static String clientID = "rhs";
-    private static String password = "password2";
+    private static String clientID = "jas";
+    private static String password = "password1";
+    //private static String clientID = "rhs";
+    //private static String password = "password2";
 
 
-    public static void main(String[] args) throws Exception{
-        /**** This is the UDP client code ****/
+    public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        /**** Setting up the UDP connectivity ****/
 
         Scanner input = new Scanner(System.in);
 
-        // create the datagram socket
-        DatagramSocket d = new DatagramSocket();
-        InetAddress ip = InetAddress.getLocalHost();
+        // create the datagram socket and catch exception if cannot
+        DatagramSocket d = null;
+        try { d = new DatagramSocket(); }
+        catch (SocketException e) {
+            System.out.println("Couldn't create the UDP socket");
+            System.exit(-1);
+        }
+
+        // Set the ip of the server.
+        InetAddress ip = null;
+        try { ip = InetAddress.getLocalHost(); } catch (UnknownHostException e) { e.printStackTrace(); }
+
+
+        /**** UDP connectivity established, now sending/receiving messages ****/
+        // variables for the control of the UDP messages exchanged
         String in, out, rand = "";
         String rand_cookie = "", TCP_port = "";
         boolean nextIsAUTH = false;
 
+        // Loop until user types Log on and create the HELLO UDP message when they do
         System.out.println("Welcome: To sign on enter 'Log on' ");
         out = input.nextLine();
         while(!out.equalsIgnoreCase("Log on")){
             out= input.nextLine();
         }
+        if (out.equalsIgnoreCase("Log on")) {
+            out = "HELLO(" + clientID + ")";
+        }
+
+        // creates and sends a Datagram Packet to the server with the HELLO message
+        DPsending = new DatagramPacket(out.getBytes("UTF-8"),out.length(),ip,12002);
+        try { d.send(DPsending); } catch (IOException e) { System.exit(-1); }
 
         while(true){
-            if (out.equalsIgnoreCase("Log on")) {
-                out = "HELLO(" + clientID + ")";
-            }
-
-            // sends the packet to the server
-            DPsending = new DatagramPacket(out.getBytes("UTF-8"),out.length(),ip,12002);
-            d.send(DPsending);
-
             // buffer for data sent by the server
             received = new byte[65536];
             DPreceived = new DatagramPacket(received,received.length);
-            d.receive(DPreceived);
+
+            // sets the timeout of the server
+            try { d.setSoTimeout(10000); } catch (SocketException e) { e.printStackTrace(); }
+            try { d.receive(DPreceived); } catch (IOException e) {
+                System.out.println("Connection to the server timed out");
+            }
             in = new String(DPreceived.getData(),StandardCharsets.US_ASCII);
 
+            // if CHALLENGE received from server use the random value and run it through the A3 enryption method
+            // and send the result of it back to the server with the RESPONSE message
             if(in.contains("CHALLENGE(")){
                 int end = in.trim().length();
                 rand = in.substring(10,end-1);
@@ -68,27 +88,41 @@ public class Client {
                 out = "RESPONSE(" + res + ")";
                 nextIsAUTH = true;
                 DPsending = new DatagramPacket(out.getBytes(),out.length(),ip,12002);
-                d.send(DPsending);
+                try {
+                    d.send(DPsending);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 out = "";
                 continue;
             }
+
+            // if AUTH_FAIL received then RESPONSE was incorrect exit the program
             if(in.contains("AUTH_FAIL")){
                 System.out.println("Incorrect password .... exiting");
                 System.exit(0);
             }
+            // if invalid then user is not a registered user exit program
             if(in.contains("INVALID")){
                 System.out.println("You are not a registered user");
                 System.exit(0);
             }
+            // if the user is already logged on indicate that and exit program
             if(in.contains("DENIED")){
                 System.out.println("This user is already logged on");
                 System.exit(0);
             }
+            // RESPONSE was correct create the encryption key to encrypt/decrypt messages to/from server and break loop
             if(nextIsAUTH == true){
                 // create encryption key
                 CK_A = A8(rand, password);
 
-                String w = decrypt(CK_A, in.trim().getBytes("UTF-8"));
+                String w = null;
+                try {
+                    w = decrypt(CK_A, in.trim().getBytes("UTF-8"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 int end, comma_location;
                 comma_location = w.indexOf(",");
                 end = w.length();
@@ -98,8 +132,15 @@ public class Client {
                 break;
             }
         }
+
+        // close the UDP datagram socket and start a new socket.
         d.close();
-        startTCPconn(ip,rand_cookie,TCP_port);
+        try {
+            startTCPconn(ip,rand_cookie,TCP_port);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private static void startTCPconn (InetAddress ip,String rand_cookie, String TCP_port) throws Exception {
