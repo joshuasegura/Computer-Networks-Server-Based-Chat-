@@ -1,4 +1,6 @@
 import com.google.gson.*;
+
+import java.security.spec.ECField;
 import java.util.concurrent.Semaphore;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -228,16 +230,6 @@ class TCPhandler extends Thread{
             incorrect = 0;
 
             while(true){
-                /***** If the client is not in a chat set the timeout for inactivity to 1 minute o/w no timeout*****/
-                int id = connectedClients.indexOf(this.userID);
-                if(clientInChat.get(id) == false) {
-                    in.setSoTimeout(10000);
-                    System.out.println("1 minute " + this.userID);
-                }
-                else {
-                    in.setSoTimeout(0);
-                    System.out.println("Infinite " + this.userID);
-                }
 
                 received = Server.decrypt(CK_A,inbound.readUTF().getBytes("UTF-8"));
                 System.out.println(received);
@@ -291,6 +283,8 @@ class TCPhandler extends Thread{
                 if(received.contains("END_REQUEST(")){
                     int index = connectedClients.indexOf(this.userID);
                     int session = clientSession.get(index);
+                    sending = new String(Server.encrypt(CK_A,""),StandardCharsets.US_ASCII);
+                    outbound.writeUTF(sending);
                     clientInChat.set(index,false);
                     clientSession.set(index,-1);
                     index = clientSession.indexOf(session);
@@ -303,64 +297,41 @@ class TCPhandler extends Thread{
                     continue;
                 }
 
-                if(received.contains("PING()")){
-                    continue;
-                }
-
-                incorrect++;
-                if(incorrect == 4){
-                    sending = "INCORRECT()";
-                    sending = new String(Server.encrypt(CK_A,sending),StandardCharsets.US_ASCII);
-                    outbound.writeUTF(sending);
-                }
-                // if the number of incorrect requests is 7 spam detected and disconnect the user
-                if(incorrect == 7){
-                    sending = new String(Server.encrypt(CK_A,"SPAM()"),StandardCharsets.US_ASCII);
-                    outbound.writeUTF(sending);
-                    logOff();
-                    break;
-                }
+                sending = new String(Server.encrypt(CK_A,""),StandardCharsets.US_ASCII);
+                outbound.writeUTF(sending);
 
             }
             /**** This catch is temp ****/
-        } catch (IOException e) {
-            try{
-                String sending = new String(Server.encrypt(this.CK_A,"TIMEOUT()"),StandardCharsets.US_ASCII);
-                outbound.writeUTF(sending);
-                logOff();
-            } catch (Exception e1){
-                {
-                    try {
-                        logOff();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        } catch (Exception e) {
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
-    private void logOff()
-            throws Exception {
+    private void logOff() {
         ///// remove the users info from all the Array lists /////
 
-        s.acquire();
-        int index = connectedClients.indexOf(this.userID);
-        index = clientKeys.indexOf(this.CK_A);
-        clientKeys.remove(index);
-        connectedClients.remove(index);
-        clientInChat.remove(index);
-        clientSession.remove(index);
-        clientSockets.remove(index);
-        Server.connected_clients.remove(this.userID);
-        s.release();
+        try {
+            s.acquire();
+            int index = connectedClients.indexOf(this.userID);
+            connectedClients.remove(index);
+            clientInChat.remove(index);
+            clientSession.remove(index);
+            clientSockets.remove(index);
+            clientKeys.remove(index);
+            Server.connected_clients.remove(this.userID);
+            s.release();
+        } catch (Exception e){
+            logOff();
+        }
 
         // close the sockets and data streams
-        inbound.close();
-        outbound.close();
-        in.close();
-        TCPconn.close();
+        try {
+            inbound.close();
+            outbound.close();
+            in.close();
+            TCPconn.close();
+        }
+        catch (Exception e){
+            logOff();
+        }
     }
 
     private void getMaxSessionID() throws IOException {

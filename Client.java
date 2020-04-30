@@ -1,8 +1,6 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -11,11 +9,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Scanner;
-import java.io.IOException;
 
 
 public class Client {
-
+    private static Socket s;
+    private static DataInputStream inbound;
+    private static DataOutputStream outbound;
     private static DatagramSocket d;
     private static DatagramPacket DPreceived, DPsending;
     private static SecretKeySpec CK_A;
@@ -23,13 +22,28 @@ public class Client {
     private static byte[] received;
     public static boolean chatting = false;
     public static String sessionID;
-    private static String clientID = "jas";
-    private static String password = "password1";
+    private static String clientID;
+    private static String password;
+    //private static String clientID = "jas";
+    //private static String password = "password1";
     //private static String clientID = "rhs";
     //private static String password = "password2";
 
 
     public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        // Setting the clientID and password
+        try {
+            File credentials = new File(args[0]);
+            Scanner fileReader = new Scanner(credentials);
+            clientID = fileReader.nextLine();
+            password = fileReader.nextLine();
+            fileReader.close();
+        } catch (Exception e) {
+            System.out.println("No credentials file given");
+            System.exit(-1);
+        }
+
+
         /**** Setting up the UDP connectivity ****/
 
         Scanner input = new Scanner(System.in);
@@ -76,6 +90,7 @@ public class Client {
             try { d.setSoTimeout(10000); } catch (SocketException e) { e.printStackTrace(); }
             try { d.receive(DPreceived); } catch (IOException e) {
                 System.out.println("Connection to the server timed out");
+                System.exit(-1);
             }
             in = new String(DPreceived.getData(),StandardCharsets.US_ASCII);
 
@@ -133,20 +148,17 @@ public class Client {
             }
         }
 
-        // close the UDP datagram socket and start a new socket.
+        // close the UDP datagram socket and start the tcp connection to the server
         d.close();
-        try {
-            startTCPconn(ip,rand_cookie,TCP_port);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        try { startTCPconn(ip,rand_cookie,TCP_port); }
+        catch (Exception e) { e.printStackTrace(); }
 
     }
 
     private static void startTCPconn (InetAddress ip,String rand_cookie, String TCP_port) throws Exception {
-        Socket s = new Socket(ip,Integer.parseInt(TCP_port));
-        DataInputStream inbound = new DataInputStream(s.getInputStream());
-        DataOutputStream outbound = new DataOutputStream(s.getOutputStream());
+        s = new Socket(ip,Integer.parseInt(TCP_port));
+        inbound = new DataInputStream(s.getInputStream());
+        outbound = new DataOutputStream(s.getOutputStream());
         String received, sending;
         Scanner in = new Scanner(System.in);
 
@@ -170,6 +182,7 @@ public class Client {
 
             /******* FOLLOWING BLOCK INPUT COMMANDS IF NOT IN A CHAT *********/
             if(!chatting) {
+
                 // sends a message to the server to indicate that the user is logging off
                 if (input.equalsIgnoreCase("Log off")) {
                     sending = new String(encrypt(CK_A, input.toUpperCase()), StandardCharsets.US_ASCII);
@@ -201,12 +214,13 @@ public class Client {
                     continue;
                 }
 
-                // if the user doesn't input a valid command it still sends to update the timeout for the server
+                // if the user doesn't input a valid command it still sends to update the inactivity timer of client
                 sending = new String(encrypt(CK_A, input),StandardCharsets.US_ASCII);
                 outbound.writeUTF(sending);
             }
             /***** Following Block for if in a Chat *******/
             if(chatting){
+
                 if(input.equalsIgnoreCase("End chat")) {
                     String toSend = "END_REQUEST(" + sessionID + ")";
                     sending = new String(encrypt(CK_A, toSend), StandardCharsets.US_ASCII);
@@ -290,6 +304,18 @@ public class Client {
         return key;
     }
 
+    // Disconnects
+    public static void inactivity(){
+        try {
+            outbound.close();
+            inbound.close();
+            s.close();
+            System.exit(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
 
 class ServerListener extends Thread{
@@ -305,19 +331,35 @@ class ServerListener extends Thread{
         this.outbound = outbound;
     }
 
-    private void ping() throws Exception {
-        String s = "PING()";
-        s = new String(Client.encrypt(CK_A, s), StandardCharsets.US_ASCII);
-        outbound.writeUTF(s);
+    private void logOff()  {
+        String s = "LOG OFF";
+        try {
+            s = new String(Client.encrypt(CK_A, s), StandardCharsets.US_ASCII);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            outbound.writeUTF(s);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void run(){
         String received = "";
+        int incorrect = 0;
         while(true) {
+            // set the timeout depending on if the client is chatting or not
+            if(!Client.chatting){ try { s.setSoTimeout(15000); } catch (SocketException e) { } }
+            else{ try { s.setSoTimeout(0); } catch (SocketException e) { } }
+
+            // read in the message unless not chatting and timeout occurs
             try {
                 received = Client.decrypt(CK_A, inbound.readUTF().getBytes("UTF-8"));
             } catch (Exception e) {
-                e.printStackTrace();
+                logOff();
+                System.out.println("Disconnected due to inactivity");
+                break;
             }
 
             if (received.contains("UNREACHABLE(")) {
@@ -328,7 +370,6 @@ class ServerListener extends Thread{
             if(received.contains("END_NOTIF(")){
                 Client.chatting = false;
                 System.out.println("Chat ended");
-                try { ping(); } catch (Exception e) { e.printStackTrace(); }
                 continue;
             }
 
@@ -342,7 +383,6 @@ class ServerListener extends Thread{
                 System.out.println(received.substring(received.indexOf(",") + 1, received.length() - 1));
                 Client.chatting = true;
                 Client.sessionID = received.substring(13, received.indexOf(","));
-                try { ping(); } catch (Exception e) { e.printStackTrace(); }
                 continue;
             }
 
@@ -360,30 +400,20 @@ class ServerListener extends Thread{
                 break;
             }
 
-            if(received.equals("TIMEOUT()")){
-                System.out.println("Disconnected due to inactivity");
-                System.exit(0);
-            }
-
-            if(received.equals("SPAM()")){
-                System.out.println("Disconnected due to possible spam");
-                System.exit(0);
-            }
-
-            if(received.equals("INCORRECT()")){
-                System.out.println("Incorrect Command, commands in the format of \n" +
-                        "1) Chat Client-ID-\n2) History Client-ID-\n3) Log off");
+            if(received.equals("")){
+                incorrect++;
+                if(incorrect == 3) {
+                    System.out.println("Incorrect Command, commands in the format of \n" +
+                            "1) Chat Client-ID-\n2) History Client-ID-\n3) Log off");
+                    incorrect = 0;
+                }
                 continue;
             }
 
         }
 
         // close the input stream before returning
-        try {
-            inbound.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Client.inactivity();
     }
 }
 
