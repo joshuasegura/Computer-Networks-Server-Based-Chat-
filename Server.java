@@ -1,6 +1,4 @@
 import com.google.gson.*;
-
-import java.security.spec.ECField;
 import java.util.concurrent.Semaphore;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -27,6 +25,16 @@ public class Server {
             add("rhs");
             add("hzs");
             add("msn");
+            add("A");
+            add("B");
+            add("C");
+            add("D");
+            add("E");
+            add("F");
+            add("G");
+            add("X");
+            add("Y");
+            add("Z");
         }
     };
     public static ArrayList<String> passwords = new ArrayList<String>(){
@@ -35,6 +43,16 @@ public class Server {
             add("password2");
             add("password3");
             add("password4");
+            add("thisismypasswordtherearemanylikeitbuthtisismine");
+            add("CompSciStud2020");
+            add("fakePASSWORD");
+            add("unoriginalPassword123");
+            add("underscore_password");
+            add("password123456789");
+            add("19asdfghjkl96");
+            add("CompNetPass");
+            add("something756");
+            add("f1n15h3d");
         }
     };
     private static String Xres;
@@ -60,6 +78,7 @@ public class Server {
             client_port = DPreceived.getPort();
             in = new String(DPreceived.getData()).trim();
 
+            // if hello is received created the CHALLENGE message and send it to the client and wait for the response
             if(in.contains("HELLO(")){
                 int end = in.length();
                 validate_user = in.substring(6,end-1);
@@ -76,6 +95,8 @@ public class Server {
                 if(!real_users.contains(validate_user))
                     out = "INVALID";
             }
+            // if when response is received check it against X_res to ensure client provided correct password
+            // send AUTH_SUCCESS and create encryption key if matches otherwise send AUTH_FAIL
             else if(in.contains("RESPONSE(")){
                 String res = in.substring(9,in.length()-1);
                 if(res.equals(Xres) ){
@@ -171,8 +192,6 @@ public class Server {
 
         Thread thr = new TCPhandler(rand_cookie,TCPport,CK_A,validate_user);
         thr.start();
-
-        /////
     }
 }
 
@@ -218,10 +237,10 @@ class TCPhandler extends Thread{
 
     public void run(){
         try {
+            // connect the client using a tcp socket
             TCPconn = new ServerSocket(port);
             in = TCPconn.accept();
             clientSockets.add(in);
-
             inbound = new DataInputStream(in.getInputStream());
             outbound = new DataOutputStream(in.getOutputStream());
 
@@ -240,6 +259,7 @@ class TCPhandler extends Thread{
                     continue;
                 }
 
+                // disconnects the client from the socket and tears it down
                 if(received.equalsIgnoreCase("LOG OFF")) {
                     sending = new String(Server.encrypt(CK_A,"EXIT()"),StandardCharsets.US_ASCII);
                     outbound.writeUTF(sending);
@@ -247,6 +267,7 @@ class TCPhandler extends Thread{
                     break;
                 }
 
+                // forwards the message to the respective client and stores the message into the history file
                 if(received.contains("CHAT(")){
                     String message = received.substring(received.indexOf(",")+1,received.length()-1);
                     int index = connectedClients.indexOf(this.userID);
@@ -270,16 +291,20 @@ class TCPhandler extends Thread{
                     continue;
                 }
 
+                // calls the function that gets the cht history between the two clients
                 if(received.contains("HISTORY_REQ(")){
                     getHistory(received,outbound);
                     continue;
                 }
 
+                // calls the function that checks to see if the client is available to chat with
                 if(received.contains("CHAT_REQUEST(")){
                     initiateChat(received,outbound);
                     continue;
                 }
 
+                // ends the chat session between the two clients and sets their chatting and session values to
+                // false and -1 respectively to indicate that the client isn't in a chat
                 if(received.contains("END_REQUEST(")){
                     int index = connectedClients.indexOf(this.userID);
                     int session = clientSession.get(index);
@@ -301,13 +326,11 @@ class TCPhandler extends Thread{
                 outbound.writeUTF(sending);
 
             }
-            /**** This catch is temp ****/
         } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void logOff() {
-        ///// remove the users info from all the Array lists /////
-
+        /**** This block removes the client's connectivity information and tears down the TCP connection ****/
         try {
             s.acquire();
             int index = connectedClients.indexOf(this.userID);
@@ -334,6 +357,8 @@ class TCPhandler extends Thread{
         }
     }
 
+    // this function gets the last chat history session when the server is started up so that it has the correct
+    // sessionID whenever the server is shut down and restarted
     private void getMaxSessionID() throws IOException {
         // Following block reads the json file and parses it
         FileReader reader = new FileReader("chatHistory.json");
@@ -353,6 +378,8 @@ class TCPhandler extends Thread{
         }
     }
 
+    // This function takes the message and stores it into the chat history file. It stores the session, chatting clients
+    // sender of the message as well as the time that the message was sent
     private void addToChatHistory(int session, int index, String message) throws IOException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonObject messageDetails = new JsonObject();
@@ -390,6 +417,8 @@ class TCPhandler extends Thread{
         chatHistoryWriter.close();
     }
 
+    // this function gets all of the chat history between two clients when requested and displays the history
+    // to the requesting client
     private void getHistory(String received, DataOutputStream outbound) throws Exception {
         String first, second, sending;
         if(this.userID.compareTo(received.substring(12,received.length()-1)) < 0) {
@@ -435,6 +464,7 @@ class TCPhandler extends Thread{
         }
     }
 
+    // This function is responsible for connecting the clients into a chat session
     private void initiateChat(String received, DataOutputStream outbound) throws Exception {
         String sending;
         String checkIfConnected = received.substring(23,received.length()-1);

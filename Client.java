@@ -24,11 +24,6 @@ public class Client {
     public static String sessionID;
     private static String clientID;
     private static String password;
-    //private static String clientID = "jas";
-    //private static String password = "password1";
-    //private static String clientID = "rhs";
-    //private static String password = "password2";
-
 
     public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
         // Setting the clientID and password
@@ -87,7 +82,7 @@ public class Client {
             DPreceived = new DatagramPacket(received,received.length);
 
             // sets the timeout of the server
-            try { d.setSoTimeout(10000); } catch (SocketException e) { e.printStackTrace(); }
+            try { d.setSoTimeout(60000); } catch (SocketException e) { e.printStackTrace(); }
             try { d.receive(DPreceived); } catch (IOException e) {
                 System.out.println("Connection to the server timed out");
                 System.exit(-1);
@@ -148,7 +143,7 @@ public class Client {
             }
         }
 
-        // Close the UDP datagram socket and start the tcp connection to the server
+        // close the UDP datagram socket and start the tcp connection to the server
         d.close();
         try { startTCPconn(ip,rand_cookie,TCP_port); }
         catch (Exception e) { e.printStackTrace(); }
@@ -304,7 +299,7 @@ public class Client {
         return key;
     }
 
-    // Disconnects
+    // Closes the data streams and tears down the TCP connection before exiting program
     public static void inactivity(){
         try {
             outbound.close();
@@ -350,7 +345,7 @@ class ServerListener extends Thread{
         int incorrect = 0;
         while(true) {
             // set the timeout depending on if the client is chatting or not
-            if(!Client.chatting){ try { s.setSoTimeout(15000); } catch (SocketException e) { } }
+            if(!Client.chatting){ try { s.setSoTimeout(60000); } catch (SocketException e) { } }
             else{ try { s.setSoTimeout(0); } catch (SocketException e) { } }
 
             // read in the message unless not chatting and timeout occurs
@@ -412,7 +407,7 @@ class ServerListener extends Thread{
 
         }
 
-        // Close the input stream before returning
+        // closing the datastreams and tearing down the socket
         Client.inactivity();
     }
 }
