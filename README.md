@@ -1,4 +1,7 @@
 # Computer Networks Server Based Chat
+EVERYTHING SHOULD BE DONE JUST NEED TO CREATE A VIDEO OF IT RUNNING
+
+
 COMPILE
 javac Client.java
 javac Server.java -cp gson-2.8.0.jar
