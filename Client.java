@@ -148,7 +148,7 @@ public class Client {
             }
         }
 
-        // close the UDP datagram socket and start the tcp connection to the server
+        // Close the UDP datagram socket and start the tcp connection to the server
         d.close();
         try { startTCPconn(ip,rand_cookie,TCP_port); }
         catch (Exception e) { e.printStackTrace(); }
@@ -412,7 +412,7 @@ class ServerListener extends Thread{
 
         }
 
-        // close the input stream before returning
+        // Close the input stream before returning
         Client.inactivity();
     }
 }
