@@ -158,5 +158,765 @@
     "SendingClient": "jas",
     "Message": "end chat",
     "Time": "Mon Apr 20 16:16:31 CDT 2020"
+  },
+  {
+    "SessionID": 3,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "woohoo it worked",
+    "Time": "Mon Apr 20 16:57:47 CDT 2020"
+  },
+  {
+    "SessionID": 4,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "well that worked so good deal",
+    "Time": "Mon Apr 20 17:00:17 CDT 2020"
+  },
+  {
+    "SessionID": 4,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "nice ",
+    "Time": "Mon Apr 20 17:00:27 CDT 2020"
+  },
+  {
+    "SessionID": 4,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "later",
+    "Time": "Mon Apr 20 17:00:29 CDT 2020"
+  },
+  {
+    "SessionID": 5,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "hello my friend",
+    "Time": "Wed Apr 22 09:42:08 CDT 2020"
+  },
+  {
+    "SessionID": 5,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "howdy",
+    "Time": "Wed Apr 22 09:42:11 CDT 2020"
+  },
+  {
+    "SessionID": 5,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "Is this chat still good",
+    "Time": "Wed Apr 22 09:44:13 CDT 2020"
+  },
+  {
+    "SessionID": 5,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "Yes it is nice ",
+    "Time": "Wed Apr 22 09:44:22 CDT 2020"
+  },
+  {
+    "SessionID": 5,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "Gotta go buffalo",
+    "Time": "Wed Apr 22 09:44:29 CDT 2020"
+  },
+  {
+    "SessionID": 5,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "Til tomorrow crocodile",
+    "Time": "Wed Apr 22 09:44:37 CDT 2020"
+  },
+  {
+    "SessionID": 6,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "hmmmm",
+    "Time": "Wed Apr 22 09:50:37 CDT 2020"
+  },
+  {
+    "SessionID": 7,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "hello",
+    "Time": "Wed Apr 22 09:54:55 CDT 2020"
+  },
+  {
+    "SessionID": 7,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "hey",
+    "Time": "Wed Apr 22 09:55:00 CDT 2020"
+  },
+  {
+    "SessionID": 8,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "hey",
+    "Time": "Wed Apr 22 10:54:11 CDT 2020"
+  },
+  {
+    "SessionID": 9,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "sup",
+    "Time": "Wed Apr 22 10:57:47 CDT 2020"
+  },
+  {
+    "SessionID": 9,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "help",
+    "Time": "Wed Apr 22 10:58:50 CDT 2020"
+  },
+  {
+    "SessionID": 10,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "cool",
+    "Time": "Wed Apr 22 11:10:07 CDT 2020"
+  },
+  {
+    "SessionID": 10,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "great ",
+    "Time": "Wed Apr 22 11:10:12 CDT 2020"
+  },
+  {
+    "SessionID": 10,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "you are a genius bro",
+    "Time": "Wed Apr 22 11:10:20 CDT 2020"
+  },
+  {
+    "SessionID": 10,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "ohhh i know",
+    "Time": "Wed Apr 22 11:10:24 CDT 2020"
+  },
+  {
+    "SessionID": 10,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "later goat",
+    "Time": "Wed Apr 22 11:10:33 CDT 2020"
+  },
+  {
+    "SessionID": 11,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "hey",
+    "Time": "Wed Apr 22 11:12:16 CDT 2020"
+  },
+  {
+    "SessionID": 11,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "sup",
+    "Time": "Wed Apr 22 11:12:20 CDT 2020"
+  },
+  {
+    "SessionID": 11,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "testing the leave",
+    "Time": "Wed Apr 22 11:12:25 CDT 2020"
+  },
+  {
+    "SessionID": 11,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "k",
+    "Time": "Wed Apr 22 11:12:27 CDT 2020"
+  },
+  {
+    "SessionID": 13,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "sjs",
+    "Time": "Wed Apr 22 11:21:24 CDT 2020"
+  },
+  {
+    "SessionID": 14,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "ok",
+    "Time": "Wed Apr 22 11:25:15 CDT 2020"
+  },
+  {
+    "SessionID": 14,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "k",
+    "Time": "Wed Apr 22 11:25:17 CDT 2020"
+  },
+  {
+    "SessionID": 14,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "bye",
+    "Time": "Wed Apr 22 11:25:24 CDT 2020"
+  },
+  {
+    "SessionID": 15,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "emd chat",
+    "Time": "Wed Apr 22 11:29:56 CDT 2020"
+  },
+  {
+    "SessionID": 17,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "hello",
+    "Time": "Wed Apr 22 11:41:02 CDT 2020"
+  },
+  {
+    "SessionID": 17,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "this is not a test",
+    "Time": "Wed Apr 22 11:41:07 CDT 2020"
+  },
+  {
+    "SessionID": 17,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "this is reality",
+    "Time": "Wed Apr 22 11:41:11 CDT 2020"
+  },
+  {
+    "SessionID": 18,
+    "ClientID-1": "hzs",
+    "ClientID-2": "msn",
+    "SendingClient": "msn",
+    "Message": "your cool bro",
+    "Time": "Wed Apr 22 11:41:27 CDT 2020"
+  },
+  {
+    "SessionID": 18,
+    "ClientID-1": "hzs",
+    "ClientID-2": "msn",
+    "SendingClient": "hzs",
+    "Message": "I know",
+    "Time": "Wed Apr 22 11:41:31 CDT 2020"
+  },
+  {
+    "SessionID": 17,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "true ",
+    "Time": "Wed Apr 22 11:41:39 CDT 2020"
+  },
+  {
+    "SessionID": 18,
+    "ClientID-1": "hzs",
+    "ClientID-2": "msn",
+    "SendingClient": "hzs",
+    "Message": "this is neat",
+    "Time": "Wed Apr 22 11:41:47 CDT 2020"
+  },
+  {
+    "SessionID": 18,
+    "ClientID-1": "hzs",
+    "ClientID-2": "msn",
+    "SendingClient": "msn",
+    "Message": "gtg",
+    "Time": "Wed Apr 22 11:41:51 CDT 2020"
+  },
+  {
+    "SessionID": 19,
+    "ClientID-1": "msn",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "testing testing",
+    "Time": "Wed Apr 22 11:42:21 CDT 2020"
+  },
+  {
+    "SessionID": 19,
+    "ClientID-1": "msn",
+    "ClientID-2": "rhs",
+    "SendingClient": "msn",
+    "Message": "it works dude",
+    "Time": "Wed Apr 22 11:42:27 CDT 2020"
+  },
+  {
+    "SessionID": 20,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "uhhh",
+    "Time": "Wed Apr 29 15:35:05 CDT 2020"
+  },
+  {
+    "SessionID": 20,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "what",
+    "Time": "Wed Apr 29 15:35:08 CDT 2020"
+  },
+  {
+    "SessionID": 21,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "hey",
+    "Time": "Wed Apr 29 15:37:20 CDT 2020"
+  },
+  {
+    "SessionID": 21,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "sup",
+    "Time": "Wed Apr 29 15:37:23 CDT 2020"
+  },
+  {
+    "SessionID": 21,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "hmmmm",
+    "Time": "Wed Apr 29 15:37:26 CDT 2020"
+  },
+  {
+    "SessionID": 21,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "yeah IDK either",
+    "Time": "Wed Apr 29 15:37:32 CDT 2020"
+  },
+  {
+    "SessionID": 21,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "k",
+    "Time": "Wed Apr 29 15:37:35 CDT 2020"
+  },
+  {
+    "SessionID": 22,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "hey",
+    "Time": "Wed Apr 29 15:50:38 CDT 2020"
+  },
+  {
+    "SessionID": 22,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "sup",
+    "Time": "Wed Apr 29 15:50:41 CDT 2020"
+  },
+  {
+    "SessionID": 22,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "okay nothing is broken",
+    "Time": "Wed Apr 29 15:50:46 CDT 2020"
+  },
+  {
+    "SessionID": 22,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "cool beans adios",
+    "Time": "Wed Apr 29 15:50:53 CDT 2020"
+  },
+  {
+    "SessionID": 23,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "jj",
+    "Time": "Wed Apr 29 16:15:57 CDT 2020"
+  },
+  {
+    "SessionID": 23,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "d",
+    "Time": "Wed Apr 29 16:15:59 CDT 2020"
+  },
+  {
+    "SessionID": 24,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "sup",
+    "Time": "Wed Apr 29 16:51:44 CDT 2020"
+  },
+  {
+    "SessionID": 24,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "ok",
+    "Time": "Wed Apr 29 16:51:47 CDT 2020"
+  },
+  {
+    "SessionID": 24,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "great",
+    "Time": "Wed Apr 29 16:51:51 CDT 2020"
+  },
+  {
+    "SessionID": 25,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "d",
+    "Time": "Wed Apr 29 16:53:18 CDT 2020"
+  },
+  {
+    "SessionID": 26,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "d",
+    "Time": "Wed Apr 29 16:54:15 CDT 2020"
+  },
+  {
+    "SessionID": 26,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "b",
+    "Time": "Wed Apr 29 16:54:17 CDT 2020"
+  },
+  {
+    "SessionID": 27,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "d",
+    "Time": "Wed Apr 29 18:29:09 CDT 2020"
+  },
+  {
+    "SessionID": 27,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "d",
+    "Time": "Wed Apr 29 18:29:11 CDT 2020"
+  },
+  {
+    "SessionID": 27,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "jas",
+    "Message": "s",
+    "Time": "Wed Apr 29 18:29:13 CDT 2020"
+  },
+  {
+    "SessionID": 28,
+    "ClientID-1": "jas",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "s",
+    "Time": "Wed Apr 29 18:34:57 CDT 2020"
+  },
+  {
+    "SessionID": 30,
+    "ClientID-1": "msn",
+    "ClientID-2": "rhs",
+    "SendingClient": "msn",
+    "Message": "saucy",
+    "Time": "Wed Apr 29 18:47:20 CDT 2020"
+  },
+  {
+    "SessionID": 30,
+    "ClientID-1": "msn",
+    "ClientID-2": "rhs",
+    "SendingClient": "rhs",
+    "Message": "ik right",
+    "Time": "Wed Apr 29 18:47:26 CDT 2020"
+  },
+  {
+    "SessionID": 29,
+    "ClientID-1": "hzs",
+    "ClientID-2": "jas",
+    "SendingClient": "hzs",
+    "Message": "cool",
+    "Time": "Wed Apr 29 18:47:30 CDT 2020"
+  },
+  {
+    "SessionID": 31,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "hello",
+    "Time": "Sat May 02 16:38:25 CDT 2020"
+  },
+  {
+    "SessionID": 31,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "B",
+    "Message": "hey how are tou",
+    "Time": "Sat May 02 16:38:29 CDT 2020"
+  },
+  {
+    "SessionID": 35,
+    "ClientID-1": "D",
+    "ClientID-2": "jas",
+    "SendingClient": "jas",
+    "Message": "ffff",
+    "Time": "Sat May 02 16:38:34 CDT 2020"
+  },
+  {
+    "SessionID": 35,
+    "ClientID-1": "D",
+    "ClientID-2": "jas",
+    "SendingClient": "D",
+    "Message": "I say something",
+    "Time": "Sat May 02 16:38:38 CDT 2020"
+  },
+  {
+    "SessionID": 32,
+    "ClientID-1": "E",
+    "ClientID-2": "F",
+    "SendingClient": "E",
+    "Message": "It goes to the correct client",
+    "Time": "Sat May 02 16:38:48 CDT 2020"
+  },
+  {
+    "SessionID": 32,
+    "ClientID-1": "E",
+    "ClientID-2": "F",
+    "SendingClient": "F",
+    "Message": "cool",
+    "Time": "Sat May 02 16:38:51 CDT 2020"
+  },
+  {
+    "SessionID": 32,
+    "ClientID-1": "E",
+    "ClientID-2": "F",
+    "SendingClient": "F",
+    "Message": "sweet",
+    "Time": "Sat May 02 16:38:53 CDT 2020"
+  },
+  {
+    "SessionID": 32,
+    "ClientID-1": "E",
+    "ClientID-2": "F",
+    "SendingClient": "E",
+    "Message": "alright",
+    "Time": "Sat May 02 16:38:56 CDT 2020"
+  },
+  {
+    "SessionID": 33,
+    "ClientID-1": "G",
+    "ClientID-2": "X",
+    "SendingClient": "G",
+    "Message": "Hey G",
+    "Time": "Sat May 02 16:39:00 CDT 2020"
+  },
+  {
+    "SessionID": 33,
+    "ClientID-1": "G",
+    "ClientID-2": "X",
+    "SendingClient": "X",
+    "Message": "Whats up X",
+    "Time": "Sat May 02 16:39:06 CDT 2020"
+  },
+  {
+    "SessionID": 34,
+    "ClientID-1": "Y",
+    "ClientID-2": "Z",
+    "SendingClient": "Y",
+    "Message": "Hey Z",
+    "Time": "Sat May 02 16:39:11 CDT 2020"
+  },
+  {
+    "SessionID": 34,
+    "ClientID-1": "Y",
+    "ClientID-2": "Z",
+    "SendingClient": "Z",
+    "Message": "cool",
+    "Time": "Sat May 02 16:39:16 CDT 2020"
+  },
+  {
+    "SessionID": 34,
+    "ClientID-1": "Y",
+    "ClientID-2": "Z",
+    "SendingClient": "Z",
+    "Message": "bye",
+    "Time": "Sat May 02 16:39:17 CDT 2020"
+  },
+  {
+    "SessionID": 36,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "g2g",
+    "Time": "Sat May 02 16:41:17 CDT 2020"
+  },
+  {
+    "SessionID": 37,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "Hey friend",
+    "Time": "Sat May 02 16:41:54 CDT 2020"
+  },
+  {
+    "SessionID": 37,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "B",
+    "Message": "Cool test dude",
+    "Time": "Sat May 02 16:41:59 CDT 2020"
+  },
+  {
+    "SessionID": 38,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "hey ",
+    "Time": "Sat May 02 16:42:33 CDT 2020"
+  },
+  {
+    "SessionID": 38,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "B",
+    "Message": "im ending the chat now",
+    "Time": "Sat May 02 16:42:44 CDT 2020"
+  },
+  {
+    "SessionID": 39,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "jello ",
+    "Time": "Sat May 02 16:43:47 CDT 2020"
+  },
+  {
+    "SessionID": 39,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "B",
+    "Message": "I like jello",
+    "Time": "Sat May 02 16:43:53 CDT 2020"
+  },
+  {
+    "SessionID": 39,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "Who doesn\u0027t",
+    "Time": "Sat May 02 16:43:58 CDT 2020"
+  },
+  {
+    "SessionID": 39,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "Bye",
+    "Time": "Sat May 02 16:44:00 CDT 2020"
+  },
+  {
+    "SessionID": 40,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "asdfasdf",
+    "Time": "Sat May 02 16:44:44 CDT 2020"
+  },
+  {
+    "SessionID": 40,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "B",
+    "Message": "asdfasdf",
+    "Time": "Sat May 02 16:44:46 CDT 2020"
+  },
+  {
+    "SessionID": 40,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "B",
+    "Message": "dfsdfs",
+    "Time": "Sat May 02 16:44:47 CDT 2020"
+  },
+  {
+    "SessionID": 41,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "llll",
+    "Time": "Sat May 02 16:47:48 CDT 2020"
+  },
+  {
+    "SessionID": 42,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "hello there ",
+    "Time": "Sat May 02 17:19:52 CDT 2020"
+  },
+  {
+    "SessionID": 42,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "B",
+    "Message": "aaaaa",
+    "Time": "Sat May 02 17:19:55 CDT 2020"
+  },
+  {
+    "SessionID": 42,
+    "ClientID-1": "A",
+    "ClientID-2": "B",
+    "SendingClient": "A",
+    "Message": "aaa",
+    "Time": "Sat May 02 17:19:57 CDT 2020"
   }
 ]
