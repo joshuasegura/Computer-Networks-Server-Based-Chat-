@@ -429,7 +429,6 @@ class TCPhandler extends Thread{
             second = this.userID;
             first = received.substring(12,received.length()-1);
         }
-        System.out.println(first + "|" + second);
 
         // Following block reads the json file and parses it
         FileReader reader = new FileReader("chatHistory.json");
